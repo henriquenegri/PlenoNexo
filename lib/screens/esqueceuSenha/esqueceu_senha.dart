@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:plenonexo/screens/esqueceuSenha/esqueceu_senha.dart';
 import 'package:plenonexo/utils/app_theme.dart';
-import 'package:plenonexo/screens/profissional/cadastro/cadastro_prof.dart';
 
-// TODO: Adicionar import para a tela de cadastro do profissional
-class ProfessionalLoginPage extends StatelessWidget {
-  const ProfessionalLoginPage({super.key});
+class ForgotPasswordScreen extends StatelessWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +12,11 @@ class ProfessionalLoginPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // --- BOTÃO DE VOLTAR ---
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
@@ -31,10 +29,14 @@ class ProfessionalLoginPage extends StatelessWidget {
                     },
                   ),
                 ),
+
+                // --- LOGO E NOME DO APP ---
                 SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 200),
                 const SizedBox(height: 8),
                 Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
-                const SizedBox(height: 25),
+                const SizedBox(height: 40),
+
+                // --- CONTAINER DO FORMULÁRIO ---
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24.0,
@@ -47,10 +49,13 @@ class ProfessionalLoginPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // --- TÍTULO "Fazer Login" ---
+                      // --- TÍTULO "Alterar Senha" ---
                       Column(
                         children: [
-                          Text('Fazer Login', style: AppTheme.tituloPrincipal),
+                          Text(
+                            'Alterar Senha',
+                            style: AppTheme.tituloPrincipal,
+                          ),
                           const SizedBox(height: 2),
                           Divider(
                             color: AppTheme.brancoPrincipal,
@@ -75,7 +80,8 @@ class ProfessionalLoginPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text('Senha', style: AppTheme.corpoTextoBranco),
+
+                      Text('Nova Senha', style: AppTheme.corpoTextoBranco),
                       const SizedBox(height: 8),
                       TextFormField(
                         obscureText: true,
@@ -88,28 +94,30 @@ class ProfessionalLoginPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ForgotPasswordScreen(),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            'Esqueci minha senha',
-                            style: AppTheme.corpoTextoClaro,
+                      const SizedBox(height: 16),
+
+                      Text(
+                        'Confirme a Nova Senha',
+                        style: AppTheme.corpoTextoBranco,
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: AppTheme.brancoPrincipal,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide.none,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 24),
+
                       ElevatedButton(
                         onPressed: () {
-                          print('Lógica de login para PROFISSIONAL...');
+                          print('Lógica para trocar a senha...');
+                          // TODO: Adicionar lógica de validação e chamada de API
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.azul9,
@@ -120,39 +128,9 @@ class ProfessionalLoginPage extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          'REALIZAR LOGIN',
+                          'TROCAR SENHA',
                           style: AppTheme.textoBotaoBranco,
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Ainda não tem conta? ',
-                            style: AppTheme.corpoTextoClaro,
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      const CadastrarProfissional(),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              padding: EdgeInsets.zero,
-                            ),
-                            child: Text(
-                              'CRIAR CONTA',
-                              style: AppTheme.textoBotaoBranco.copyWith(
-                                color: AppTheme.brancoPrincipal,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),

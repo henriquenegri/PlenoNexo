@@ -36,6 +36,11 @@ class AppTheme {
     fontWeight: FontWeight.bold,
   );
 
+  static final TextStyle tituloPrincipalPreto = GoogleFonts.montserrat(
+    fontSize: 30,
+    color: pretoPrincipal,
+  );
+
   static final TextStyle textoBotaoBranco = GoogleFonts.poppins(
     fontSize: 15,
     fontWeight: FontWeight.bold,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/welcome/welcome_screen.dart';
 import 'utils/app_theme.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() {
   runApp(const PlenoNexoApp());
@@ -14,6 +15,15 @@ class PlenoNexoApp extends StatelessWidget {
     return MaterialApp(
       title: 'PlenoNexo',
       theme: AppTheme.lightTheme,
+      debugShowCheckedModeBanner: false,
+
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('pt', 'BR')],
+
       home: const WelcomeScreen(),
     );
   }

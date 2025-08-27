@@ -12,36 +12,26 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.brancoPrincipal,
       body: SafeArea(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // --- LOGO E NOME DO APP ---
-            SvgPicture.asset(
-              'assets/img/logoPlenoNexo.svg', // Certifique-se que o caminho está correto
-              height:
-                  150, // Aumentei um pouco o logo para preencher melhor o espaço
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'PlenoNexo',
-              textAlign: TextAlign.center,
-              // Usando o estilo de tipografia que definimos
-              style: AppTheme.tituloPrincipalNegrito,
-            ),
-            const SizedBox(height: 40),
-
-            // --- CONTAINER COM OS BOTÕES DE ESCOLHA ---
-            // CORREÇÃO: Envolvemos o Padding com o widget Expanded.
-            // Isto força o Container a ocupar todo o espaço vertical restante.
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        // Usamos um Padding geral para a tela não ficar colada nas bordas
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 60.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // --- LOGO E NOME DO APP ---
+              SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 200),
+              const SizedBox(height: 8),
+              Text(
+                'PlenoNexo',
+                textAlign: TextAlign.center,
+                style: AppTheme.tituloPrincipalPreto,
+              ),
+              const SizedBox(height: 24),
+              Expanded(
                 child: Container(
-                  // A altura do container agora é definida pelo Expanded.
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24.0,
-                    vertical: 32.0, // Um padding vertical base
+                    vertical: 32.0,
                   ),
                   decoration: BoxDecoration(
                     color: AppTheme.azul13,
@@ -55,24 +45,20 @@ class WelcomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             'SEJA BEM-VINDO',
-                            style: AppTheme.tituloPrincipal, // Estilo do tema
+                            style: AppTheme.tituloPrincipal,
                           ),
-                          const SizedBox(
-                            height: 2,
-                          ), // Espaço reduzido para alinhar com a linha
+                          const SizedBox(height: 2),
                           Divider(
-                            color: AppTheme.brancoPrincipal.withOpacity(0.5),
+                            color: AppTheme.brancoPrincipal,
                             thickness: 1,
                           ),
                         ],
                       ),
 
-                      // O Spacer agora funciona porque o seu pai (Column -> Container -> Expanded)
-                      // tem uma altura bem definida.
                       const Spacer(),
 
                       // --- BOTÃO PARA FLUXO DO USUÁRIO ---
-                      OutlinedButton(
+                      ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -81,9 +67,9 @@ class WelcomeScreen extends StatelessWidget {
                             ),
                           );
                         },
-                        style: OutlinedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.azul9,
                           padding: const EdgeInsets.symmetric(vertical: 14.0),
-                          side: BorderSide(color: AppTheme.azul9, width: 2),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),
@@ -97,7 +83,8 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
 
-                      const SizedBox(height: 24.0),
+                      // MUDANÇA 3: Aumentamos o espaço entre os botões.
+                      const SizedBox(height: 50.0),
 
                       // --- BOTÃO PARA FLUXO DO PROFISSIONAL ---
                       ElevatedButton(
@@ -123,17 +110,13 @@ class WelcomeScreen extends StatelessWidget {
                           style: AppTheme.textoBotaoBranco,
                         ),
                       ),
+                      const SizedBox(height: 70.0),
                     ],
                   ),
                 ),
               ),
-            ),
-            // Removemos o Spacer de fora, pois o Expanded já faz o trabalho
-            // de preencher o espaço de forma mais controlada.
-            const SizedBox(
-              height: 40,
-            ), // Adicionamos um espaço fixo em baixo para respirar
-          ],
+            ],
+          ),
         ),
       ),
     );
