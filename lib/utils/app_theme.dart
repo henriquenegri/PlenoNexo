@@ -30,6 +30,12 @@ class AppTheme {
     color: brancoPrincipal,
   );
 
+  static final TextStyle tituloPrincipalBrancoNegrito = GoogleFonts.montserrat(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: brancoPrincipal,
+  );
+
   static final TextStyle tituloPrincipalNegrito = GoogleFonts.montserrat(
     fontSize: 30,
     color: pretoPrincipal,
