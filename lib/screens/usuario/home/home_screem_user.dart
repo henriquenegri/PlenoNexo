@@ -14,6 +14,7 @@ class UserHomeScreen extends StatefulWidget {
 class _UserHomeScreenState extends State<UserHomeScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -21,14 +22,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     _selectedDay = DateTime(_focusedDay.year, _focusedDay.month, 19);
   }
 
-  // A função agora aceita um Widget genérico para o ícone.
   Widget _buildQuickAccessButton({
     required Widget iconWidget,
     required String label,
   }) {
     return Container(
-      width: 110, // Adicionando uma largura para melhor alinhamento
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      height: 125,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
         color: AppTheme.azul9,
         borderRadius: BorderRadius.circular(10),
@@ -36,13 +36,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Usamos o widget do ícone diretamente aqui
           iconWidget,
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTheme.corpoTextoBranco.copyWith(fontSize: 12),
+            style: AppTheme.corpoTextoBranco.copyWith(fontSize: 16),
           ),
         ],
       ),
@@ -59,186 +58,217 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.brancoPrincipal,
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // --- CABEÇALHO ---
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                children: [
-                  SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 40),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Olá, $userName',
-                        style: AppTheme.tituloPrincipalPreto.copyWith(
-                          fontSize: 18,
-                        ),
-                      ),
-                      Text(
-                        formattedDate,
-                        style: TextStyle(color: AppTheme.pretoPrincipal),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: Icon(
-                      Icons.notifications_outlined,
-                      color: AppTheme.pretoPrincipal,
-                      size: 28,
-                    ),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-
-            // --- ACESSO RÁPIDO ---
-            Text(
-              'Acesso Rápido',
-              style: AppTheme.tituloPrincipalNegrito.copyWith(fontSize: 16),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Container(
-                padding: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: AppTheme.azul12,
-                  borderRadius: BorderRadius.circular(15.0),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // --- CABEÇALHO ---
+                Row(
                   children: [
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    SvgPicture.asset(
+                      'assets/img/logoPlenoNexo.svg',
+                      height: 50,
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // CORREÇÃO: Todas as chamadas agora usam 'iconWidget' e 'label'.
-                        _buildQuickAccessButton(
+                        Text(
+                          'Olá, $userName',
+                          style: AppTheme.tituloPrincipalPreto.copyWith(
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          formattedDate,
+                          style: TextStyle(color: AppTheme.pretoPrincipal),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: AppTheme.azul13,
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.notifications_outlined,
+                          color: AppTheme.brancoPrincipal,
+                          size: 28,
+                        ),
+                        onPressed: () {},
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // --- ACESSO RÁPIDO ---
+                Text(
+                  'Acesso Rápido',
+                  style: AppTheme.tituloPrincipalNegrito.copyWith(fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(14.0),
+                  decoration: BoxDecoration(
+                    color: AppTheme.azul12,
+                    borderRadius: BorderRadius.circular(15.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildQuickAccessButton(
                           iconWidget: SvgPicture.asset(
                             'assets/icons/iconePessoaCaderno.svg',
                             colorFilter: ColorFilter.mode(
                               AppTheme.brancoPrincipal,
                               BlendMode.srcIn,
                             ),
-                            height: 30,
+                            height: 45,
                           ),
                           label: 'Marcar\nConsulta',
                         ),
-                        _buildQuickAccessButton(
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildQuickAccessButton(
                           iconWidget: SvgPicture.asset(
                             'assets/icons/iconeDente.svg',
                             colorFilter: ColorFilter.mode(
                               AppTheme.brancoPrincipal,
                               BlendMode.srcIn,
                             ),
-                            height: 30,
+                            height: 45,
                           ),
                           label: 'Marcar\nDentista',
                         ),
-                        _buildQuickAccessButton(
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildQuickAccessButton(
                           iconWidget: SvgPicture.asset(
                             'assets/icons/iconeMedalha.svg',
                             colorFilter: ColorFilter.mode(
                               AppTheme.brancoPrincipal,
                               BlendMode.srcIn,
                             ),
-                            height: 30,
+                            height: 45,
                           ),
                           label: 'Avaliar\nConsultas',
                         ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-            // --- CALENDÁRIO ---
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Data da Próxima Consulta',
-                style: AppTheme.tituloPrincipalPreto.copyWith(fontSize: 16),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppTheme.brancoPrincipal,
-                  borderRadius: BorderRadius.circular(15.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.pretoPrincipal,
-                      blurRadius: 5,
-                      offset: const Offset(0, 0.2),
-                    ),
-                  ],
-                ),
-                child: TableCalendar(
-                  locale: 'pt_BR',
-                  firstDay: DateTime.utc(2020, 1, 1),
-                  lastDay: DateTime.utc(2030, 12, 31),
-                  focusedDay: _focusedDay,
-                  calendarFormat: CalendarFormat.month,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    setState(() {
-                      _selectedDay = selectedDay;
-                      _focusedDay = focusedDay;
-                    });
-                  },
-                  headerStyle: HeaderStyle(
-                    titleCentered: true,
-                    formatButtonVisible: false,
-                    titleTextStyle: AppTheme.tituloPrincipal.copyWith(
-                      fontSize: 16,
-                    ),
+                // --- CALENDÁRIO ---
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  decoration: BoxDecoration(
+                    color: AppTheme.azul12,
+                    borderRadius: BorderRadius.circular(15.0),
                   ),
-                  calendarStyle: CalendarStyle(
-                    selectedDecoration: BoxDecoration(
-                      color: AppTheme.vermelho1,
-                      shape: BoxShape.circle,
-                    ),
-                    todayDecoration: BoxDecoration(
-                      color: AppTheme.azul5,
-                      shape: BoxShape.circle,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Data da Próxima Consulta',
+                        style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.brancoPrincipal,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: TableCalendar(
+                          locale: 'pt_BR',
+                          firstDay: DateTime.utc(2020, 1, 1),
+                          lastDay: DateTime.utc(2030, 12, 31),
+                          focusedDay: _focusedDay,
+                          calendarFormat: CalendarFormat.month,
+                          selectedDayPredicate: (day) =>
+                              isSameDay(_selectedDay, day),
+                          onDaySelected: (selectedDay, focusedDay) {
+                            setState(() {
+                              _selectedDay = selectedDay;
+                              _focusedDay = focusedDay;
+                            });
+                          },
+                          headerStyle: HeaderStyle(
+                            titleCentered: true,
+                            formatButtonVisible: false,
+                            titleTextStyle: AppTheme.tituloPrincipal.copyWith(
+                              fontSize: 16,
+                            ),
+                          ),
+                          calendarStyle: CalendarStyle(
+                            selectedDecoration: BoxDecoration(
+                              color: AppTheme.vermelho1,
+                              shape: BoxShape.circle,
+                            ),
+                            todayDecoration: BoxDecoration(
+                              color: AppTheme.azul5,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+        unselectedItemColor: AppTheme.pretoPrincipal,
+        selectedItemColor: AppTheme.azul9,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Início',
           ),
+
           BottomNavigationBarItem(
-            icon: Icon(Icons.show_chart_outlined),
-            activeIcon: Icon(Icons.show_chart),
-            label: 'Progresso',
+            icon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                AppTheme.pretoPrincipal,
+                BlendMode.srcIn,
+              ),
+            ),
+            activeIcon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(AppTheme.azul9, BlendMode.srcIn),
+            ),
+            label: 'Consultas',
           ),
-          BottomNavigationBarItem(
+
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Perfil',
           ),
         ],
-        currentIndex: 0,
-        selectedItemColor: AppTheme.azul1,
-        onTap: (index) {},
       ),
     );
   }
