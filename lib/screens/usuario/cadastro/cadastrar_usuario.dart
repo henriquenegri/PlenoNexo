@@ -1,23 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:cpf_cnpj_validator/cpf_validator.dart';
+import 'package:flutter/services.dart';
 
-// Como precisamos guardar o que o utilizador seleciona (radio, checkbox),
-// esta tela precisa ser um StatefulWidget.
 class CadastrarUsuario extends StatefulWidget {
   const CadastrarUsuario({super.key});
 
   @override
-  State<CadastrarUsuario> createState() => _CadastrarUsuario();
+  State<CadastrarUsuario> createState() => _CadastrarUsuarioState();
 }
 
-class _CadastrarUsuario extends State<CadastrarUsuario> {
-  // Variáveis para guardar o estado dos nossos widgets
-  String?
-  _paraQuemERegistro; // Armazena a opção do radio button "Para quem é o registro?"
-  final Set<String> _neuroDiversidade =
-      {}; // Armazena a opção do radio button "Neuro Diversidade?"
-  bool _termosAceitos = false; // Armazena o estado do checkbox
+class _CadastrarUsuarioState extends State<CadastrarUsuario> {
+  final AuthService _authService = AuthService();
+
+  // Controllers para os campos de texto
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _birthDateController = TextEditingController();
+  final _cpfController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  // Criando as máscaras
+  final _cpfFormatter = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  final _phoneFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+  // MUDANÇA: Adicionando a máscara para a data de nascimento
+  final _dateFormatter = MaskTextInputFormatter(
+    mask: '##/##/####',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
+  // Variáveis de estado
+  bool _isLoading = false;
+  String? _paraQuemERegistro;
+  final Set<String> _neuroDiversidades = {};
+  bool _termosAceitos = false;
   String? _estadoSelecionado;
   final List<String> _estadosBrasileiros = [
     'AC',
@@ -49,10 +76,88 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
     'TO',
   ];
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _cityController.dispose();
+    _birthDateController.dispose();
+    _cpfController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    // Validação de CPF
+    final cpf = _cpfController.text;
+    if (cpf.isNotEmpty && !CPFValidator.isValid(cpf)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('O CPF informado não é válido.')),
+      );
+      return;
+    }
+
+    if (_nameController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, preencha os campos obrigatórios.'),
+        ),
+      );
+      return;
+    }
+    if (_paraQuemERegistro == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Por favor, selecione para quem é o registro.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await _authService.registerPatient(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      name: _nameController.text.trim(),
+      state: _estadoSelecionado ?? '',
+      city: _cityController.text.trim(),
+      birthDate: _birthDateController.text.trim(),
+      cpf: _cpfController.text.trim(),
+      phone: _phoneController.text.trim(),
+      register: _paraQuemERegistro,
+      neurodiversities: _neuroDiversidades.toList(),
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+
+    if (result == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cadastro realizado com sucesso!')),
+        );
+        Navigator.of(context).pop();
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result)));
+      }
+    }
+  }
+
   Widget _buildTextField({
     required String label,
+    required TextEditingController controller,
     TextInputType keyboardType = TextInputType.text,
     bool isPassword = false,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,8 +165,10 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
         Text(label, style: AppTheme.corpoTextoBranco),
         const SizedBox(height: 8),
         TextFormField(
+          controller: controller,
           keyboardType: keyboardType,
           obscureText: isPassword,
+          inputFormatters: inputFormatters,
           style: const TextStyle(color: AppTheme.pretoPrincipal),
           decoration: InputDecoration(
             filled: true,
@@ -81,7 +188,6 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
     );
   }
 
-  // Função auxiliar para criar os campos de texto e evitar repetição
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,14 +208,17 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                       Icons.arrow_back,
                       color: AppTheme.pretoPrincipal,
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
                 SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 100),
                 const SizedBox(height: 8),
-                Text('PlenoNexo', style: AppTheme.tituloPrincipal),
+                Text(
+                  'PlenoNexo',
+                  style: AppTheme.tituloPrincipal.copyWith(
+                    color: AppTheme.pretoPrincipal,
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -134,19 +243,18 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
-                      // --- NOVOS CAMPOS ADICIONADOS ---
-                      _buildTextField(label: 'Nome Completo:'),
+                      _buildTextField(
+                        label: 'Nome Completo:',
+                        controller: _nameController,
+                      ),
                       _buildTextField(
                         label: 'E-mail:',
+                        controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                       ),
-
-                      // Linha para Estado e Cidade
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Coluna para Estado (Dropdown)
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,18 +266,19 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<String>(
                                   value: _estadoSelecionado,
-                                  items: _estadosBrasileiros.map((
-                                    String estado,
-                                  ) {
-                                    return DropdownMenuItem<String>(
-                                      value: estado,
-                                      child: Text(estado),
-                                    );
-                                  }).toList(),
+                                  items: _estadosBrasileiros
+                                      .map(
+                                        (String estado) =>
+                                            DropdownMenuItem<String>(
+                                              value: estado,
+                                              child: Text(estado),
+                                            ),
+                                      )
+                                      .toList(),
                                   onChanged: (newValue) {
-                                    setState(() {
-                                      _estadoSelecionado = newValue;
-                                    });
+                                    setState(
+                                      () => _estadoSelecionado = newValue,
+                                    );
                                   },
                                   decoration: InputDecoration(
                                     filled: true,
@@ -188,29 +297,39 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          // Coluna para Cidade (Campo de texto)
-                          Expanded(child: _buildTextField(label: 'Cidade:')),
+                          Expanded(
+                            child: _buildTextField(
+                              label: 'Cidade:',
+                              controller: _cityController,
+                            ),
+                          ),
                         ],
                       ),
-
                       _buildTextField(
                         label: 'Data Nascimento:',
+                        controller: _birthDateController,
                         keyboardType: TextInputType.datetime,
+                        // MUDANÇA: Aplicando a máscara de data
+                        inputFormatters: [_dateFormatter],
                       ),
                       _buildTextField(
                         label: 'Informe o CPF:',
+                        controller: _cpfController,
                         keyboardType: TextInputType.number,
+                        inputFormatters: [_cpfFormatter],
                       ),
                       _buildTextField(
                         label: 'Telefone:',
+                        controller: _phoneController,
                         keyboardType: TextInputType.phone,
+                        inputFormatters: [_phoneFormatter],
                       ),
                       _buildTextField(
                         label: 'Crie sua Senha:',
+                        controller: _passwordController,
                         isPassword: true,
                       ),
-
-                      // --- SELEÇÃO "PARA QUEM É O REGISTRO?" ---
+                      const SizedBox(height: 16),
                       Text(
                         'Para quem é o registro?',
                         style: AppTheme.corpoTextoBranco,
@@ -244,14 +363,11 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                                 .toList(),
                       ),
                       const SizedBox(height: 16),
-
-                      // --- SELEÇÃO "NEURO DIVERSIDADE?" ---
                       Text(
                         'Possui Alguma Neuro Diversidade?',
                         style: AppTheme.corpoTextoBranco,
                       ),
                       const SizedBox(height: 8),
-                      // MUDANÇA 2: Usamos FilterChip para seleção múltipla
                       Wrap(
                         spacing: 8.0,
                         runSpacing: 4.0,
@@ -262,24 +378,31 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                                   'Dispraxia',
                                   'Discalculia',
                                   'TOC',
-                                  'Nenhum',
                                   'TDAH',
                                   'Transtorno Bipolar',
                                   'TPS',
                                   'Ansiedade',
                                   'Depressão',
+                                  'Nenhum',
                                 ]
                                 .map(
                                   (label) => FilterChip(
                                     label: Text(label),
-                                    // O chip está selecionado se o seu 'label' estiver na nossa lista de selecionados
-                                    selected: _neuroDiversidade.contains(label),
+                                    selected: _neuroDiversidades.contains(
+                                      label,
+                                    ),
                                     onSelected: (isSelected) {
                                       setState(() {
-                                        if (isSelected) {
-                                          _neuroDiversidade.add(label);
+                                        if (label == 'Nenhum') {
+                                          _neuroDiversidades.clear();
+                                          _neuroDiversidades.add('Nenhum');
                                         } else {
-                                          _neuroDiversidade.remove(label);
+                                          _neuroDiversidades.remove('Nenhum');
+                                          if (isSelected) {
+                                            _neuroDiversidades.add(label);
+                                          } else {
+                                            _neuroDiversidades.remove(label);
+                                          }
                                         }
                                       });
                                     },
@@ -296,8 +419,6 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                                 .toList(),
                       ),
                       const SizedBox(height: 16),
-
-                      // --- TERMOS E CONDIÇÕES ---
                       Row(
                         children: [
                           Checkbox(
@@ -318,13 +439,9 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
-                      // --- BOTÃO DE ACESSAR ---
                       ElevatedButton(
-                        onPressed: _termosAceitos
-                            ? () {
-                                print('Botão Acessar pressionado!');
-                              }
+                        onPressed: _termosAceitos && !_isLoading
+                            ? _register
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.azul9,
@@ -334,10 +451,16 @@ class _CadastrarUsuario extends State<CadastrarUsuario> {
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        child: Text(
-                          'ACESSAR',
-                          style: AppTheme.textoBotaoBranco,
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text('ACESSAR', style: AppTheme.textoBotaoBranco),
                       ),
                     ],
                   ),
