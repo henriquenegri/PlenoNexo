@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // Import necessário
 import 'package:plenonexo/firebase_options.dart';
 import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   runApp(const PlenoNexoApp());
 }
 
@@ -21,6 +20,15 @@ class PlenoNexoApp extends StatelessWidget {
       title: 'PlenoNexo',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
+
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('pt', 'BR')],
+      locale: const Locale('pt', 'BR'),
+
       home: const WelcomeScreen(),
     );
   }

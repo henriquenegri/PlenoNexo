@@ -5,8 +5,6 @@ import 'package:plenonexo/utils/app_theme.dart';
 import 'package:plenonexo/screens/usuario/cadastro/cadastrar_usuario.dart';
 import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
 
-// TODO: Adicionar import para a tela de cadastro do usuário
-
 class UserLoginPage extends StatelessWidget {
   const UserLoginPage({super.key});
 
