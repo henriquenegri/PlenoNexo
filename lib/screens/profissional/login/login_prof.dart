@@ -1,12 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/screens/esqueceuSenha/esqueceu_senha.dart';
-import 'package:plenonexo/utils/app_theme.dart';
 import 'package:plenonexo/screens/profissional/cadastro/cadastro_prof.dart';
+import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
+import 'package:plenonexo/services/auth_service.dart';
+import 'package:plenonexo/utils/app_theme.dart';
 
-// TODO: Adicionar import para a tela de cadastro do profissional
-class ProfessionalLoginPage extends StatelessWidget {
+class ProfessionalLoginPage extends StatefulWidget {
   const ProfessionalLoginPage({super.key});
+
+  @override
+  State<ProfessionalLoginPage> createState() => _UserLoginPageState();
+}
+
+class _UserLoginPageState extends State<ProfessionalLoginPage> {
+  final AuthService _authService = AuthService();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _signIn() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor, preencha o email e a senha.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await _authService.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      expectedRole: 'professional',
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+
+    if (result == null) {
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result)));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +72,7 @@ class ProfessionalLoginPage extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -26,15 +83,15 @@ class ProfessionalLoginPage extends StatelessWidget {
                       Icons.arrow_back,
                       color: AppTheme.pretoPrincipal,
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
                 SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 200),
                 const SizedBox(height: 8),
                 Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
                 const SizedBox(height: 25),
+
+                // --- FIM DO BOTÃO TEMPORÁRIO ---
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24.0,
@@ -47,23 +104,21 @@ class ProfessionalLoginPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // --- TÍTULO "Fazer Login" ---
                       Column(
                         children: [
                           Text('Fazer Login', style: AppTheme.tituloPrincipal),
                           const SizedBox(height: 2),
                           Divider(
-                            color: AppTheme.brancoPrincipal,
+                            color: AppTheme.brancoPrincipal.withAlpha(128),
                             thickness: 1,
                           ),
                         ],
                       ),
                       const SizedBox(height: 32.0),
-
-                      // --- CAMPOS E BOTÕES ---
                       Text('Email', style: AppTheme.corpoTextoBranco),
                       const SizedBox(height: 8),
                       TextFormField(
+                        controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           filled: true,
@@ -78,6 +133,7 @@ class ProfessionalLoginPage extends StatelessWidget {
                       Text('Senha', style: AppTheme.corpoTextoBranco),
                       const SizedBox(height: 8),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           filled: true,
@@ -108,9 +164,7 @@ class ProfessionalLoginPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () {
-                          print('Lógica de login para PROFISSIONAL...');
-                        },
+                        onPressed: _isLoading ? null : _signIn,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.azul9,
                           foregroundColor: AppTheme.brancoPrincipal,
@@ -119,10 +173,19 @@ class ProfessionalLoginPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        child: Text(
-                          'REALIZAR LOGIN',
-                          style: AppTheme.textoBotaoBranco,
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'REALIZAR LOGIN',
+                                style: AppTheme.textoBotaoBranco,
+                              ),
                       ),
                       const SizedBox(height: 24),
                       Row(
@@ -138,7 +201,7 @@ class ProfessionalLoginPage extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      const CadastrarProfissional(),
+                                      const ProfessionalRegistrationScreen(),
                                 ),
                               );
                             },

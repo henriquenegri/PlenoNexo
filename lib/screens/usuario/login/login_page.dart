@@ -1,12 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/screens/esqueceuSenha/esqueceu_senha.dart';
-import 'package:plenonexo/utils/app_theme.dart';
 import 'package:plenonexo/screens/usuario/cadastro/cadastrar_usuario.dart';
 import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
+import 'package:plenonexo/services/auth_service.dart';
+import 'package:plenonexo/utils/app_theme.dart';
 
-class UserLoginPage extends StatelessWidget {
+class UserLoginPage extends StatefulWidget {
   const UserLoginPage({super.key});
+
+  @override
+  State<UserLoginPage> createState() => _UserLoginPageState();
+}
+
+class _UserLoginPageState extends State<UserLoginPage> {
+  final AuthService _authService = AuthService();
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  // MUDANÇA 5: Função que contém toda a lógica de login
+  Future<void> _signIn() async {
+    // Validação simples
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Por favor, preencha o email e a senha.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await _authService.signIn(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      expectedRole: 'patient',
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+
+    if (result == null) {
+      // Sucesso!
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+        );
+      }
+    } else {
+      // Erro
+      if (mounted) {
+        // Mostra a mensagem de erro que veio do Firebase
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result)));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,9 +90,7 @@ class UserLoginPage extends StatelessWidget {
                       Icons.arrow_back,
                       color: AppTheme.pretoPrincipal,
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                    onPressed: () => Navigator.pop(context),
                   ),
                 ),
                 SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 200),
@@ -47,14 +109,12 @@ class UserLoginPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // --- TÍTULO "Fazer Login" ---
-                      // MUDANÇA AQUI: Substituímos o Row pela Column
                       Column(
                         children: [
                           Text('Fazer Login', style: AppTheme.tituloPrincipal),
                           const SizedBox(height: 2),
                           Divider(
-                            color: AppTheme.brancoPrincipal,
+                            color: AppTheme.brancoPrincipal.withAlpha(128),
                             thickness: 1,
                           ),
                         ],
@@ -62,7 +122,9 @@ class UserLoginPage extends StatelessWidget {
                       const SizedBox(height: 32.0),
                       Text('Email', style: AppTheme.corpoTextoBranco),
                       const SizedBox(height: 8),
+                      // MUDANÇA 6: Conectamos o controller ao TextFormField
                       TextFormField(
+                        controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           filled: true,
@@ -77,6 +139,7 @@ class UserLoginPage extends StatelessWidget {
                       Text('Senha', style: AppTheme.corpoTextoBranco),
                       const SizedBox(height: 8),
                       TextFormField(
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           filled: true,
@@ -107,15 +170,8 @@ class UserLoginPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const UserHomeScreen(),
-                            ),
-                          );
-                          print('Lógica de login para USUÁRIO...');
-                        },
+                        // MUDANÇA 7: O botão agora chama a nossa função de lógica
+                        onPressed: _isLoading ? null : _signIn,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.azul9,
                           foregroundColor: AppTheme.brancoPrincipal,
@@ -124,10 +180,19 @@ class UserLoginPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8.0),
                           ),
                         ),
-                        child: Text(
-                          'REALIZAR LOGIN',
-                          style: AppTheme.textoBotaoBranco,
-                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'REALIZAR LOGIN',
+                                style: AppTheme.textoBotaoBranco,
+                              ),
                       ),
                       const SizedBox(height: 24),
                       Row(

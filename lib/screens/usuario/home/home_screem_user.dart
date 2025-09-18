@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/services/auth_service.dart';
+import 'package:plenonexo/models/agendamento_model.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:plenonexo/screens/usuario/especialidade_medico/especialidade_medico.dart';
+import 'package:plenonexo/services/user_service.dart';
+import 'package:plenonexo/services/appointment_service.dart';
 
 class UserHomeScreen extends StatefulWidget {
   const UserHomeScreen({super.key});
@@ -14,8 +17,8 @@ class UserHomeScreen extends StatefulWidget {
 }
 
 class _UserHomeScreenState extends State<UserHomeScreen> {
-  // Variáveis para guardar os dados do utilizador e o estado de loading
-  final AuthService _authService = AuthService();
+  final UserService _userService = UserService();
+  final AppointmentService _appointmentService = AppointmentService();
   UserModel? _currentUser;
   bool _isLoading = true;
 
@@ -23,59 +26,140 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   DateTime? _selectedDay;
   int _selectedIndex = 0;
 
+  // Variáveis para o calendário
+  Map<DateTime, List<AppointmentModel>> _appointmentsMap = {};
+  List<AppointmentModel> _selectedDayAppointments = [];
+
   @override
   void initState() {
     super.initState();
-    _selectedDay = DateTime(_focusedDay.year, _focusedDay.month, 19);
-    // Chamamos a função para carregar os dados quando a tela inicia
+    _selectedDay = DateTime.now();
     _loadUserData();
   }
 
-  // Nova função para buscar os dados
   Future<void> _loadUserData() async {
-    final user = await _authService.getCurrentUserData();
-    // A verificação 'if (mounted)' garante que o widget ainda está na tela
-    // antes de tentarmos atualizar o estado, evitando erros.
+    final user = await _userService.getCurrentUserData();
     if (mounted) {
       setState(() {
         _currentUser = user;
         _isLoading = false;
       });
+
+      // Carrega os agendamentos após carregar os dados do usuário
+      if (user != null) {
+        _loadAppointments();
+      }
     }
   }
 
-  // MUDANÇA: Criamos um getter para pegar apenas o primeiro nome.
+  Future<void> _loadAppointments() async {
+    if (_currentUser == null) return;
+
+    final appointments = await _appointmentService
+        .getPatientAppointmentsByMonth(_currentUser!.uid, _focusedDay);
+
+    if (mounted) {
+      setState(() {
+        _appointmentsMap = _groupAppointmentsByDate(appointments);
+        _selectedDayAppointments = _getAppointmentsForDay(_selectedDay!);
+      });
+    }
+  }
+
+  Map<DateTime, List<AppointmentModel>> _groupAppointmentsByDate(
+    List<AppointmentModel> appointments,
+  ) {
+    Map<DateTime, List<AppointmentModel>> grouped = {};
+
+    for (AppointmentModel appointment in appointments) {
+      final date = DateTime(
+        appointment.dateTime.year,
+        appointment.dateTime.month,
+        appointment.dateTime.day,
+      );
+
+      if (grouped[date] == null) {
+        grouped[date] = [];
+      }
+      grouped[date]!.add(appointment);
+    }
+
+    return grouped;
+  }
+
+  List<AppointmentModel> _getAppointmentsForDay(DateTime day) {
+    final date = DateTime(day.year, day.month, day.day);
+    return _appointmentsMap[date] ?? [];
+  }
+
+  bool _hasAppointmentOnDay(DateTime day) {
+    final date = DateTime(day.year, day.month, day.day);
+    return _appointmentsMap.containsKey(date);
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return AppTheme.azul9;
+      case 'confirmed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      case 'completed':
+        return Colors.grey;
+      default:
+        return AppTheme.azul9;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return 'Agendada';
+      case 'confirmed':
+        return 'Confirmada';
+      case 'cancelled':
+        return 'Cancelada';
+      case 'completed':
+        return 'Concluída';
+      default:
+        return 'Agendada';
+    }
+  }
+
   String get _firstName {
-    // Se não houver utilizador ou nome, retorna um valor padrão.
     if (_currentUser == null || _currentUser!.name.isEmpty) {
       return 'Utilizador';
     }
-    // Divide o nome completo pelos espaços e pega a primeira parte.
     return _currentUser!.name.split(' ').first;
   }
 
   Widget _buildQuickAccessButton({
     required Widget iconWidget,
     required String label,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      height: 125,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.azul9,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          iconWidget,
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTheme.corpoTextoBranco.copyWith(fontSize: 16),
-          ),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 125,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.azul9,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            iconWidget,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTheme.corpoTextoBranco.copyWith(fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -107,7 +191,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // MUDANÇA: Usamos o nosso novo getter para o primeiro nome.
                               Text(
                                 'Olá, $_firstName',
                                 style: AppTheme.tituloPrincipalPreto.copyWith(
@@ -167,6 +250,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   height: 45,
                                 ),
                                 label: 'Marcar\nConsulta',
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SelectSpecialtyScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -181,6 +273,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   height: 45,
                                 ),
                                 label: 'Marcar\nDentista',
+                                onTap: () {
+                                  // TODO: Adicionar navegação para a tela do dentista
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -195,6 +290,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   height: 45,
                                 ),
                                 label: 'Avaliar\nConsultas',
+                                onTap: () {
+                                  // TODO: Adicionar navegação para a tela de avaliação
+                                },
                               ),
                             ),
                           ],
@@ -221,7 +319,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 color: AppTheme.brancoPrincipal,
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
-                              child: TableCalendar(
+                              child: TableCalendar<AppointmentModel>(
                                 locale: 'pt_BR',
                                 firstDay: DateTime.utc(2020, 1, 1),
                                 lastDay: DateTime.utc(2030, 12, 31),
@@ -233,26 +331,246 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   setState(() {
                                     _selectedDay = selectedDay;
                                     _focusedDay = focusedDay;
+                                    _selectedDayAppointments =
+                                        _getAppointmentsForDay(selectedDay);
                                   });
+                                },
+                                onPageChanged: (focusedDay) {
+                                  setState(() {
+                                    _focusedDay = focusedDay;
+                                  });
+                                  _loadAppointments(); // Recarrega os agendamentos do novo mês
+                                },
+                                eventLoader: (day) {
+                                  return _getAppointmentsForDay(day);
                                 },
                                 headerStyle: HeaderStyle(
                                   titleCentered: true,
                                   formatButtonVisible: false,
                                   titleTextStyle: AppTheme.tituloPrincipal
-                                      .copyWith(fontSize: 16),
+                                      .copyWith(
+                                        fontSize: 16,
+                                        color: AppTheme.pretoPrincipal,
+                                      ),
                                 ),
                                 calendarStyle: CalendarStyle(
                                   selectedDecoration: BoxDecoration(
-                                    color: AppTheme.vermelho1,
+                                    color: AppTheme.azul9,
                                     shape: BoxShape.circle,
                                   ),
                                   todayDecoration: BoxDecoration(
                                     color: AppTheme.azul5,
                                     shape: BoxShape.circle,
                                   ),
+                                  markersMaxCount: 1,
+                                  markerDecoration: BoxDecoration(
+                                    color: AppTheme.vermelho1,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                calendarBuilders: CalendarBuilders(
+                                  markerBuilder: (context, day, events) {
+                                    if (events.isNotEmpty) {
+                                      return Positioned(
+                                        bottom: 1,
+                                        child: Container(
+                                          width: 6,
+                                          height: 6,
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.vermelho1,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return null;
+                                  },
+                                  outsideBuilder: (context, day, focusedDay) {
+                                    final isToday = isSameDay(
+                                      day,
+                                      DateTime.now(),
+                                    );
+                                    final hasAppointment = _hasAppointmentOnDay(
+                                      day,
+                                    );
+
+                                    return Container(
+                                      margin: const EdgeInsets.all(4.0),
+                                      decoration: BoxDecoration(
+                                        color: isToday
+                                            ? AppTheme.azul5.withOpacity(0.3)
+                                            : hasAppointment
+                                            ? AppTheme.vermelho1.withOpacity(
+                                                0.3,
+                                              )
+                                            : null,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '${day.day}',
+                                          style: TextStyle(
+                                            color: isToday
+                                                ? AppTheme.azul9
+                                                : hasAppointment
+                                                ? AppTheme.vermelho1
+                                                : null,
+                                            fontWeight: isToday
+                                                ? FontWeight.bold
+                                                : null,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  defaultBuilder: (context, day, focusedDay) {
+                                    final isToday = isSameDay(
+                                      day,
+                                      DateTime.now(),
+                                    );
+                                    final hasAppointment = _hasAppointmentOnDay(
+                                      day,
+                                    );
+
+                                    return Container(
+                                      margin: const EdgeInsets.all(4.0),
+                                      decoration: BoxDecoration(
+                                        color: isToday
+                                            ? AppTheme.azul5.withOpacity(0.3)
+                                            : hasAppointment
+                                            ? AppTheme.vermelho1.withOpacity(
+                                                0.3,
+                                              )
+                                            : null,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '${day.day}',
+                                          style: TextStyle(
+                                            color: isToday
+                                                ? AppTheme.azul9
+                                                : hasAppointment
+                                                ? AppTheme.vermelho1
+                                                : null,
+                                            fontWeight: isToday
+                                                ? FontWeight.bold
+                                                : null,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            // Seção de consultas do dia selecionado
+                            if (_selectedDayAppointments.isNotEmpty) ...[
+                              Text(
+                                'Consultas do dia ${DateFormat('dd/MM/yyyy').format(_selectedDay!)}',
+                                style: AppTheme.tituloPrincipalBrancoNegrito
+                                    .copyWith(fontSize: 14),
+                              ),
+                              const SizedBox(height: 8),
+                              ...(_selectedDayAppointments
+                                  .map(
+                                    (appointment) => Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.brancoPrincipal
+                                            .withOpacity(0.9),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: AppTheme.azul9.withOpacity(
+                                            0.3,
+                                          ),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.access_time,
+                                                size: 16,
+                                                color: AppTheme.azul9,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                DateFormat(
+                                                  'HH:mm',
+                                                ).format(appointment.dateTime),
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AppTheme.azul9,
+                                                ),
+                                              ),
+                                              const Spacer(),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: _getStatusColor(
+                                                    appointment.status,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  _getStatusText(
+                                                    appointment.status,
+                                                  ),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            appointment.subject,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              color: AppTheme.pretoPrincipal,
+                                            ),
+                                          ),
+                                          if (appointment.price > 0) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Valor: R\$ ${appointment.price.toStringAsFixed(2)}',
+                                              style: TextStyle(
+                                                color: AppTheme.pretoPrincipal
+                                                    .withOpacity(0.7),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                  .toList()),
+                            ] else ...[
+                              Text(
+                                'Nenhuma consulta agendada para ${DateFormat('dd/MM/yyyy').format(_selectedDay!)}',
+                                style: AppTheme.corpoTextoBranco.copyWith(
+                                  fontSize: 14,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -265,10 +583,32 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         unselectedItemColor: AppTheme.pretoPrincipal.withOpacity(0.6),
         selectedItemColor: AppTheme.azul9,
         currentIndex: _selectedIndex,
+        // MUDANÇA: Lógica de navegação para todos os itens
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          switch (index) {
+            case 0:
+              // Já estamos na Home, então só atualizamos o índice para o feedback visual
+              setState(() {
+                _selectedIndex = index;
+              });
+              break;
+            case 1: // Inicio
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SelectSpecialtyScreen(),
+                ),
+              );
+              break;
+            case 2: // Consultas
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SelectSpecialtyScreen(),
+                ),
+              );
+              break;
+          }
         },
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(
