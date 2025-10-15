@@ -6,6 +6,8 @@ import 'package:plenonexo/models/agendamento_model.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:plenonexo/screens/usuario/especialidade_medico/especialidade_medico.dart';
+import 'package:plenonexo/screens/usuario/rating/professional_rating_screen.dart';
+import 'package:plenonexo/screens/usuario/options/options_screen.dart';
 import 'package:plenonexo/services/user_service.dart';
 import 'package:plenonexo/services/appointment_service.dart';
 
@@ -29,6 +31,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   // Variáveis para o calendário
   Map<DateTime, List<AppointmentModel>> _appointmentsMap = {};
   List<AppointmentModel> _selectedDayAppointments = [];
+  DateTime? _nextAppointmentDate;
 
   @override
   void initState() {
@@ -58,11 +61,35 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     final appointments = await _appointmentService
         .getPatientAppointmentsByMonth(_currentUser!.uid, _focusedDay);
 
+    // Encontra a data da próxima consulta
+    _findNextAppointmentDate();
+
     if (mounted) {
       setState(() {
         _appointmentsMap = _groupAppointmentsByDate(appointments);
         _selectedDayAppointments = _getAppointmentsForDay(_selectedDay!);
       });
+    }
+  }
+
+  Future<void> _findNextAppointmentDate() async {
+    if (_currentUser == null) return;
+
+    final allAppointments = await _appointmentService.getPatientAppointments(
+      _currentUser!.uid,
+    );
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    allAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+    final futureAppointments = allAppointments.where(
+      (appt) => !appt.dateTime.isBefore(today),
+    );
+
+    if (futureAppointments.isNotEmpty) {
+      final date = futureAppointments.first.dateTime;
+      _nextAppointmentDate = DateTime(date.year, date.month, date.day);
     }
   }
 
@@ -274,7 +301,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 ),
                                 label: 'Marcar\nDentista',
                                 onTap: () {
-                                  // TODO: Adicionar navegação para a tela do dentista
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SelectSpecialtyScreen(),
+                                    ),
+                                  );
                                 },
                               ),
                             ),
@@ -291,7 +324,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 ),
                                 label: 'Avaliar\nConsultas',
                                 onTap: () {
-                                  // TODO: Adicionar navegação para a tela de avaliação
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ProfessionalRatingScreen(),
+                                    ),
+                                  );
                                 },
                               ),
                             ),
@@ -393,6 +432,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                     final hasAppointment = _hasAppointmentOnDay(
                                       day,
                                     );
+                                    final isNextAppointment = isSameDay(
+                                      day,
+                                      _nextAppointmentDate,
+                                    );
 
                                     return Container(
                                       margin: const EdgeInsets.all(4.0),
@@ -402,6 +445,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                             : hasAppointment
                                             ? AppTheme.vermelho1.withOpacity(
                                                 0.3,
+                                              )
+                                            : null,
+                                        border: isNextAppointment
+                                            ? Border.all(
+                                                color: AppTheme.primaryGreen,
+                                                width: 2,
                                               )
                                             : null,
                                         shape: BoxShape.circle,
@@ -431,6 +480,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                     final hasAppointment = _hasAppointmentOnDay(
                                       day,
                                     );
+                                    final isNextAppointment = isSameDay(
+                                      day,
+                                      _nextAppointmentDate,
+                                    );
 
                                     return Container(
                                       margin: const EdgeInsets.all(4.0),
@@ -440,6 +493,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                             : hasAppointment
                                             ? AppTheme.vermelho1.withOpacity(
                                                 0.3,
+                                              )
+                                            : null,
+                                        border: isNextAppointment
+                                            ? Border.all(
+                                                color: AppTheme.primaryGreen,
+                                                width: 2,
                                               )
                                             : null,
                                         shape: BoxShape.circle,
@@ -545,10 +604,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                               color: AppTheme.pretoPrincipal,
                                             ),
                                           ),
-                                          if (appointment.price > 0) ...[
+                                          if (appointment.consultationPrice >
+                                              0) ...[
                                             const SizedBox(height: 4),
                                             Text(
-                                              'Valor: R\$ ${appointment.price.toStringAsFixed(2)}',
+                                              'Valor: R\$ ${appointment.consultationPrice.toStringAsFixed(2)}',
                                               style: TextStyle(
                                                 color: AppTheme.pretoPrincipal
                                                     .withOpacity(0.7),
@@ -592,20 +652,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 _selectedIndex = index;
               });
               break;
-            case 1: // Inicio
+            case 1: // Avaliações
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const SelectSpecialtyScreen(),
-                ),
+                  builder: (context) => const ProfessionalRatingScreen(),
+                ), // MUDANÇA: Navega para a tela de avaliações
               );
               break;
-            case 2: // Consultas
+            case 2: // Perfil
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const SelectSpecialtyScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => const OptionsScreen()),
               );
               break;
           }
@@ -617,20 +675,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/iconeBatimentoCardiaco.svg',
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                AppTheme.pretoPrincipal.withOpacity(0.6),
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/iconeBatimentoCardiaco.svg',
-              height: 24,
-              colorFilter: ColorFilter.mode(AppTheme.azul9, BlendMode.srcIn),
-            ),
-            label: 'Consultas',
+            icon: Icon(Icons.star_outline),
+            activeIcon: Icon(Icons.star),
+            label: 'Avaliações',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

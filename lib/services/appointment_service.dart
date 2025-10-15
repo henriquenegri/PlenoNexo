@@ -10,7 +10,7 @@ class AppointmentService {
     required String professionalId,
     required DateTime dateTime,
     required String subject,
-    required double price,
+    required double consultationPrice,
     String status = 'scheduled',
   }) async {
     await _firestore.collection('appointments').add({
@@ -18,7 +18,7 @@ class AppointmentService {
       'professionalId': professionalId,
       'dateTime': Timestamp.fromDate(dateTime),
       'subject': subject,
-      'price': price,
+      'price': consultationPrice,
       'status': status,
       'createdAt': FieldValue.serverTimestamp(),
     });
@@ -72,27 +72,24 @@ class AppointmentService {
       return [];
     }
   }
-
-  /// Busca agendamentos de um paciente em um mês específico
-  Future<List<AppointmentModel>> getPatientAppointmentsByMonth(
-    String patientId,
-    DateTime month,
+  
+  /// Busca agendamentos de um profissional em uma data específica
+  Future<List<AppointmentModel>> getProfessionalAppointmentsByDate(
+    String professionalId,
+    DateTime date,
   ) async {
     try {
-      final startOfMonth = DateTime(month.year, month.month, 1);
-      final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+      final startOfDay = DateTime(date.year, date.month, date.day);
+      final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
 
       final querySnapshot = await _firestore
           .collection('appointments')
-          .where('patientId', isEqualTo: patientId)
+          .where('professionalId', isEqualTo: professionalId)
           .where(
             'dateTime',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
           )
-          .where(
-            'dateTime',
-            isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth),
-          )
+          .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
           .orderBy('dateTime')
           .get();
 
@@ -100,7 +97,31 @@ class AppointmentService {
           .map((doc) => AppointmentModel.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print("Erro ao buscar agendamentos do mês: $e");
+      print("Erro ao buscar agendamentos do profissional por data: $e");
+      return [];
+    }
+  }
+
+  // Obter agendamentos de um paciente por mês
+  Future<List<AppointmentModel>> getPatientAppointmentsByMonth(
+      String patientId, DateTime month) async {
+    try {
+      final startOfMonth = DateTime(month.year, month.month, 1);
+      final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+
+      final querySnapshot = await _firestore
+          .collection('appointments')
+          .where('patientId', isEqualTo: patientId)
+          .where('dateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
+          .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+          .orderBy('dateTime')
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) => AppointmentModel.fromFirestore(doc))
+          .toList();
+    } catch (e) {
+      print('Erro ao obter agendamentos do paciente: $e');
       return [];
     }
   }
@@ -141,4 +162,3 @@ class AppointmentService {
     }
   }
 }
-

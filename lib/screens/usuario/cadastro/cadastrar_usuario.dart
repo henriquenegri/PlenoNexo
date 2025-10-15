@@ -48,6 +48,22 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
   String? _paraQuemERegistro;
   final Set<String> _neuroDiversidades = {};
   bool _termosAceitos = false;
+
+  // Lista de neurodiversidades
+  final List<String> _neurodiversidadesList = [
+    'Autismo',
+    'Dislexia',
+    'Dispraxia',
+    'Discalculia',
+    'TOC (Transtorno Obsessivo-Compulsivo)',
+    'TDAH (Transtorno do Déficit de Atenção e Hiperatividade)',
+    'Transtorno Bipolar',
+    'Transtorno de Personalidade Borderline',
+    'Ansiedade Generalizada',
+    'Depressão',
+    'Nenhum',
+    'Outros',
+  ];
   String? _estadoSelecionado;
   final List<String> _estadosBrasileiros = [
     'AC',
@@ -292,8 +308,15 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                         keyboardType: TextInputType.emailAddress,
                       ),
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Expanded(
+                            flex: 2,
+                            child: _buildTextField(
+                              label: 'Cidade:',
+                              controller: _cityController,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,13 +356,6 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextField(
-                              label: 'Cidade:',
-                              controller: _cityController,
                             ),
                           ),
                         ],
@@ -401,70 +417,7 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                                 .toList(),
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        'Possui Alguma Neuro Diversidade?',
-                        style: AppTheme.corpoTextoBranco,
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8.0,
-                        runSpacing: 4.0,
-                        children:
-                            [
-                                  'Autismo',
-                                  'Dislexia',
-                                  'Dispraxia',
-                                  'Discalculia',
-                                  'TOC',
-                                  'Nenhum',
-                                  'TDAH',
-                                  'Transtorno Bipolar',
-                                  'TPS',
-                                  'Ansiedade',
-                                  'Depressão',
-                                  'Outros',
-                                ]
-                                .map(
-                                  (label) => FilterChip(
-                                    label: Text(label),
-                                    selected: _neuroDiversidades.contains(
-                                      label,
-                                    ),
-                                    onSelected: (isSelected) {
-                                      setState(() {
-                                        if (label == 'Nenhum') {
-                                          _neuroDiversidades.clear();
-                                          _neuroDiversidades.add('Nenhum');
-                                        } else {
-                                          _neuroDiversidades.remove('Nenhum');
-                                          if (isSelected) {
-                                            _neuroDiversidades.add(label);
-                                          } else {
-                                            _neuroDiversidades.remove(label);
-                                          }
-                                        }
-                                      });
-                                    },
-                                    backgroundColor: AppTheme.azul9,
-                                    selectedColor: AppTheme.azul5,
-                                    labelStyle: AppTheme.corpoTextoBranco
-                                        .copyWith(fontSize: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      side: BorderSide.none,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                      if (_neuroDiversidades.contains('Outros'))
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: _buildTextField(
-                            label: 'Por favor, especifique:',
-                            controller: _otherNeurodiversityController,
-                          ),
-                        ),
+                      _buildNeurodiversidadeCheckboxes(),
                       const SizedBox(height: 16),
                       Row(
                         children: [
@@ -517,6 +470,83 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNeurodiversidadeCheckboxes() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Possui Alguma Neuro Diversidade?',
+          style: AppTheme.corpoTextoBranco,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: AppTheme.brancoPrincipal,
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: ExpansionTile(
+            title: Text(
+              _neuroDiversidades.isEmpty
+                  ? 'Selecione as neurodiversidades'
+                  : '${_neuroDiversidades.length} neurodiversidade(s) selecionada(s)',
+              style: TextStyle(
+                color: _neuroDiversidades.isEmpty
+                    ? Colors.grey[600]
+                    : AppTheme.pretoPrincipal,
+              ),
+            ),
+            trailing: Icon(
+              Icons.arrow_drop_down,
+              color: AppTheme.pretoPrincipal,
+            ),
+            children: _neurodiversidadesList.map((neurodiversidade) {
+              final isSelected = _neuroDiversidades.contains(neurodiversidade);
+              return CheckboxListTile(
+                title: Text(
+                  neurodiversidade,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppTheme.pretoPrincipal,
+                  ),
+                ),
+                value: isSelected,
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (neurodiversidade == 'Nenhum') {
+                      if (value == true) {
+                        _neuroDiversidades.clear();
+                        _neuroDiversidades.add('Nenhum');
+                      }
+                    } else {
+                      _neuroDiversidades.remove('Nenhum');
+                      if (value == true) {
+                        _neuroDiversidades.add(neurodiversidade);
+                      } else {
+                        _neuroDiversidades.remove(neurodiversidade);
+                      }
+                    }
+                  });
+                },
+                activeColor: AppTheme.azul13,
+                checkColor: AppTheme.brancoPrincipal,
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              );
+            }).toList(),
+          ),
+        ),
+        if (_neuroDiversidades.contains('Outros'))
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: _buildTextField(
+              label: 'Por favor, especifique:',
+              controller: _otherNeurodiversityController,
+            ),
+          ),
+      ],
     );
   }
 }

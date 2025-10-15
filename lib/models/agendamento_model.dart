@@ -6,8 +6,10 @@ class AppointmentModel {
   final String professionalId;
   final DateTime dateTime;
   final String status;
-  final double price;
+  final double consultationPrice;
   final String subject;
+  String? patientName; // Campo para armazenar o nome do paciente
+  final bool isReviewed;
 
   AppointmentModel({
     required this.id,
@@ -15,8 +17,10 @@ class AppointmentModel {
     required this.professionalId,
     required this.dateTime,
     required this.status,
-    required this.price,
+    required this.consultationPrice,
     required this.subject,
+    this.isReviewed = false,
+    this.patientName,
   });
 
   factory AppointmentModel.fromFirestore(DocumentSnapshot doc) {
@@ -28,8 +32,9 @@ class AppointmentModel {
       professionalId: data['professionalId'] ?? '',
       dateTime: (data['dateTime'] as Timestamp).toDate(),
       status: data['status'] ?? 'scheduled',
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
+      consultationPrice: (data['price'] as num?)?.toDouble() ?? 0.0,
       subject: data['subject'] ?? 'Consulta',
+      isReviewed: data['isReviewed'] ?? false,
     );
   }
 }

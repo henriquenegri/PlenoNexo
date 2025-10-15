@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/screens/esqueceuSenha/esqueceu_senha.dart';
 import 'package:plenonexo/screens/profissional/cadastro/cadastro_prof.dart';
-import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
+import 'package:plenonexo/screens/profissional/dashboard_profissional.dart';
 
 class ProfessionalLoginPage extends StatefulWidget {
   const ProfessionalLoginPage({super.key});
@@ -53,7 +53,9 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
     if (result == null) {
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+          MaterialPageRoute(
+            builder: (context) => const DashboardProfissional(),
+          ),
         );
       }
     } else {

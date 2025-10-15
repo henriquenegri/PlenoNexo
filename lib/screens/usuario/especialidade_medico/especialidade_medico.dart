@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
+import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/screens/usuario/especialidade_medico/selecionar_profissional/selecionar_profissional.dart';
 import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
+import 'package:plenonexo/screens/usuario/options/options_screen.dart';
 import 'package:plenonexo/services/professional_service.dart';
+import 'package:plenonexo/services/user_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 
 class SelectSpecialtyScreen extends StatefulWidget {
@@ -13,19 +17,35 @@ class SelectSpecialtyScreen extends StatefulWidget {
 }
 
 class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
-  int _selectedIndex = 1; // Começa com o índice 1 (Consultas) selecionado
+  final int _selectedIndex = 1;
+  final UserService _userService = UserService();
   final ProfessionalService _professionalService = ProfessionalService();
-  Map<String, List<String>> _groupedSpecialties = {};
+  final Map<String, List<String>> _groupedSpecialties = {};
+  UserModel? _currentUser;
 
   @override
   void initState() {
     super.initState();
+    _loadData();
+  }
+
+  void _loadData() async {
+    final user = await _userService.getCurrentUserData();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+      });
+    }
     _groupSpecialties();
+  }
+
+  String get _userName {
+    return _currentUser?.name.split(' ').first ?? 'Utilizador';
   }
 
   void _groupSpecialties() {
     final specialties = _professionalService.getAtuationAreas();
-    specialties.sort(); // Ordena alfabeticamente
+    specialties.sort();
 
     _groupedSpecialties.clear();
 
@@ -67,7 +87,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
           ),
         ),
         Divider(
-          color: AppTheme.brancoPrincipal.withOpacity(0.3),
+          color: AppTheme.brancoPrincipal.withAlpha((255 * 0.3).round()),
           thickness: 1,
           indent: 16,
           endIndent: 16,
@@ -83,25 +103,30 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // --- CABEÇALHO (similar ao da HomeScreen) ---
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
                 children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: AppTheme.pretoPrincipal,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
                   SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 50),
                   const SizedBox(width: 12),
-                  // TODO: Tornar este cabeçalho dinâmico com os dados do utilizador
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Olá, Utilizador',
+                        'Olá, $_userName',
                         style: AppTheme.tituloPrincipalPreto.copyWith(
                           fontSize: 18,
                         ),
                       ),
                       Text(
-                        '03/09/2025',
+                        DateFormat('dd/MM/yyyy').format(DateTime.now()),
                         style: TextStyle(color: AppTheme.pretoPrincipal),
                       ),
                     ],
@@ -109,7 +134,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                   const Spacer(),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppTheme.azul13.withOpacity(0.9),
+                      color: AppTheme.azul13.withAlpha((255 * 0.9).round()),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -125,7 +150,6 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
               ),
             ),
 
-            // --- LISTA DE ESPECIALIDADES ---
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -137,19 +161,11 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                   child: ListView(
                     children: [
                       ListTile(
-                        leading: IconButton(
-                          icon: Icon(
-                            Icons.arrow_back,
-                            color: AppTheme.brancoPrincipal,
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
                         title: Text(
                           'Selecionar Especialidade',
                           style: AppTheme.tituloPrincipal,
                         ),
                       ),
-                      // Gera dinamicamente as especialidades organizadas por letra
                       ...(_groupedSpecialties.keys.toList()..sort()).map((
                         letter,
                       ) {
@@ -173,7 +189,9 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: AppTheme.pretoPrincipal.withOpacity(0.6),
+        unselectedItemColor: AppTheme.pretoPrincipal.withAlpha(
+          (255 * 0.6).round(),
+        ),
         selectedItemColor: AppTheme.azul9,
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -186,12 +204,11 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
               );
               break;
             case 1:
-              // Já estamos aqui, não faz nada
               break;
-            case 2: // Perfil
+            case 2:
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => UserHomeScreen()),
+                MaterialPageRoute(builder: (context) => const OptionsScreen()),
               );
               break;
           }
@@ -203,19 +220,8 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/iconeBatimentoCardiaco.svg',
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                AppTheme.pretoPrincipal.withOpacity(0.6),
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/iconeBatimentoCardiaco.svg',
-              height: 24,
-              colorFilter: ColorFilter.mode(AppTheme.azul9, BlendMode.srcIn),
-            ),
+            icon: Icon(Icons.medical_services_outlined),
+            activeIcon: Icon(Icons.medical_services),
             label: 'Consultas',
           ),
           const BottomNavigationBarItem(

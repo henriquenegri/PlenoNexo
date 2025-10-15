@@ -57,4 +57,58 @@ class UserService {
     }
     return null;
   }
+
+  /// Atualiza o perfil do utilizador.
+  Future<void> updateUserProfile({
+    required String uid,
+    required String name,
+    required String email,
+    String? city,
+    String? phone,
+    String? state,
+    String? birthDate,
+    List<String>? neuroDiversity,
+    String? password,
+  }) async {
+    try {
+      Map<String, dynamic> updateData = {
+        'name': name,
+        'email': email,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (city != null) updateData['city'] = city;
+      if (phone != null) updateData['phone'] = phone;
+      if (state != null) updateData['state'] = state;
+      if (birthDate != null) updateData['birthDate'] = birthDate;
+      if (neuroDiversity != null) updateData['neuroDiversity'] = neuroDiversity;
+
+      await _firestore.collection('users').doc(uid).update(updateData);
+
+      // If password is provided, update it in Firebase Auth
+      if (password != null && password.isNotEmpty) {
+        final firebaseUser = _authService.currentUser;
+        if (firebaseUser != null) {
+          await firebaseUser.updatePassword(password);
+        }
+      }
+    } catch (e) {
+      print("Erro ao atualizar perfil do utilizador: $e");
+      rethrow;
+    }
+  }
+
+  /// Exclui a conta do utilizador.
+  Future<void> deleteUserAccount(String uid) async {
+    try {
+      // Delete user document from Firestore
+      await _firestore.collection('users').doc(uid).delete();
+
+      // You might also want to delete related data like appointments, etc.
+      // This would depend on your data structure
+    } catch (e) {
+      print("Erro ao excluir conta do utilizador: $e");
+      rethrow;
+    }
+  }
 }

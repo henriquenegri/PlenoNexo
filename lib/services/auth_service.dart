@@ -81,6 +81,14 @@ class AuthService {
     await _auth.signOut();
   }
 
+  /// Exclui o utilizador atual do Firebase Authentication.
+  Future<void> deleteUser() async {
+    final user = _auth.currentUser;
+    if (user != null) {
+      await user.delete();
+    }
+  }
+
   /// Retorna o utilizador do Firebase atualmente logado.
   User? get currentUser => _auth.currentUser;
 }
