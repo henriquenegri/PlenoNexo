@@ -3,6 +3,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/services/auth_service.dart';
+import 'package:plenonexo/screens/usuario/especialidade_medico/especialidade_medico.dart';
+import 'package:plenonexo/screens/usuario/profile/profile_menu_screen.dart';
+import 'package:plenonexo/screens/usuario/rating/professional_rating_screen.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -33,9 +36,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   // Nova função para buscar os dados
   Future<void> _loadUserData() async {
-    final user = await _authService.getCurrentUserData();
-    // A verificação 'if (mounted)' garante que o widget ainda está na tela
-    // antes de tentarmos atualizar o estado, evitando erros.
+    final user = await _authService.getCurrentUserModel();
     if (mounted) {
       setState(() {
         _currentUser = user;
@@ -44,38 +45,40 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     }
   }
 
-  // MUDANÇA: Criamos um getter para pegar apenas o primeiro nome.
   String get _firstName {
-    // Se não houver utilizador ou nome, retorna um valor padrão.
     if (_currentUser == null || _currentUser!.name.isEmpty) {
       return 'Utilizador';
     }
-    // Divide o nome completo pelos espaços e pega a primeira parte.
     return _currentUser!.name.split(' ').first;
   }
 
   Widget _buildQuickAccessButton({
     required Widget iconWidget,
     required String label,
+    required VoidCallback onPressed,
   }) {
-    return Container(
-      height: 125,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppTheme.azul9,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          iconWidget,
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: AppTheme.corpoTextoBranco.copyWith(fontSize: 16),
-          ),
-        ],
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        height: 125,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.azul9,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            iconWidget,
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: AppTheme.corpoTextoBranco.copyWith(fontSize: 16),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -167,6 +170,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   height: 45,
                                 ),
                                 label: 'Marcar\nConsulta',
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SelectSpecialtyScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -181,6 +193,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   height: 45,
                                 ),
                                 label: 'Marcar\nDentista',
+                                onPressed: () {
+                                  // TODO: Implementar navegação para a tela de dentista
+                                  // Ex: Navigator.push(...);
+                                },
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -195,6 +211,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                   height: 45,
                                 ),
                                 label: 'Avaliar\nConsultas',
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const ProfessionalRatingScreen(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
@@ -266,9 +291,30 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         selectedItemColor: AppTheme.azul9,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+          // Não atualiza o estado se já estiver na tela selecionada
+          if (_selectedIndex == index) return;
+
+          switch (index) {
+            case 0:
+              // Já estamos na Home, não faz nada.
+              break;
+            case 1:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const SelectSpecialtyScreen(),
+                ),
+              );
+              break;
+            case 2:
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileMenuScreen(),
+                ),
+              );
+              break;
+          }
         },
         items: <BottomNavigationBarItem>[
           const BottomNavigationBarItem(

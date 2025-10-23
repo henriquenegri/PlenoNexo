@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart'; // Import nec
 import 'package:plenonexo/firebase_options.dart';
 import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 import 'package:plenonexo/utils/app_theme.dart';
+import 'package:plenonexo/utils/auth_check.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,7 @@ class PlenoNexoApp extends StatelessWidget {
       supportedLocales: const [Locale('pt', 'BR')],
       locale: const Locale('pt', 'BR'),
 
-      home: const WelcomeScreen(),
+      home: const AuthCheck(),
     );
   }
 }

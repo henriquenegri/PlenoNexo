@@ -24,6 +24,24 @@ class AppTheme {
   static const Color vermelho2 = Color(0xFFDA3D38);
   static const Color vermelho3 = Color(0xFFD12924);
 
+  // Novas cores do dashboard
+  static const Color background = Color(0xFFF5F5F5);
+  static const Color primaryGreen = Color(0xFF2A4B3A);
+  static const Color secondaryGreen = Color(0xFF8FA89A);
+  static const Color chartPurple = Color(0xFF8884d8);
+  static const Color chartLightBlue = Color(0xFF82ca9d);
+  static const Color chartGrayBlue = Color(0xFFa4b0be);
+  static const Color chartLightGreen = Color(0xFFb6e0a5);
+  static const Color chartDarkGray = Color(0xFF555555);
+
+  static const List<Color> chartColors = [
+    chartPurple,
+    chartLightBlue,
+    chartGrayBlue,
+    chartLightGreen,
+    chartDarkGray,
+  ];
+
   static final TextStyle tituloPrincipal = GoogleFonts.montserrat(
     fontSize: 22,
     fontWeight: FontWeight.normal,
@@ -78,9 +96,6 @@ class AppTheme {
         error: vermelho3,
         onError: brancoPrincipal,
       ),
-      // O textTheme pode ser removido ou mantido como um fallback,
-      // mas nossa fonte principal de estilos agora são as constantes acima.
-      // Vou deixar em branco para reforçar a nova abordagem.
       textTheme: TextTheme(),
 
       // Estilos de widgets ainda podem ser úteis para evitar repetição.
