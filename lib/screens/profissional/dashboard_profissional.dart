@@ -3,12 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:plenonexo/models/agendamento_model.dart';
+import 'package:plenonexo/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../utils/app_theme.dart';
 import 'dashboards_detalhados.dart';
 import 'opcoes_profissional.dart';
-import 'editar_informacoes.dart'; // Já importado
-import 'visualizar_consultas.dart'; // Import da nova tela
+import 'editar_informacoes.dart';
+import 'visualizar_consultas.dart';
 
 class DashboardProfissional extends StatefulWidget {
   const DashboardProfissional({super.key});
@@ -21,6 +23,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
   int _selectedIndex = 0; // Home é o primeiro item
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late Stream<List<AppointmentModel>> _todayAppointmentsStream;
   late Stream<List<BarChartGroupData>> _chartDataStream;
   String _professionalName = "...";
 
@@ -29,6 +32,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     super.initState();
     _loadProfessionalName();
     _chartDataStream = _getChartData();
+    _todayAppointmentsStream = _getTodayAppointmentsStream();
   }
 
   void _loadProfessionalName() async {
@@ -43,6 +47,13 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     }
   }
 
+  String get _firstName {
+    if (_professionalName.isEmpty || _professionalName == "...") {
+      return 'Profissional';
+    }
+    return _professionalName.split(' ').first;
+  }
+
   Stream<List<BarChartGroupData>> _getChartData() {
     final user = _auth.currentUser;
     if (user == null) {
@@ -50,7 +61,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     }
 
     return _firestore
-        .collection('agendamentos')
+        .collection('appointments') // CORREÇÃO: Usar a coleção 'appointments'
         .where('professionalId', isEqualTo: user.uid)
         .where(
           'dateTime',
@@ -122,6 +133,44 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     });
   }
 
+  Stream<List<AppointmentModel>> _getTodayAppointmentsStream() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return Stream.value([]);
+    }
+
+    final now = DateTime.now();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    return _firestore
+        .collection('appointments')
+        .where('professionalId', isEqualTo: user.uid)
+        .where(
+          'dateTime',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
+        )
+        .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
+        .orderBy('dateTime')
+        .snapshots()
+        .asyncMap((snapshot) async {
+          List<AppointmentModel> appointments = [];
+          for (var doc in snapshot.docs) {
+            final appointment = AppointmentModel.fromFirestore(doc);
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(appointment.patientId)
+                .get();
+            if (userDoc.exists) {
+              final userModel = UserModel.fromFirestore(userDoc);
+              appointment.patientName = userModel.name;
+            }
+            appointments.add(appointment);
+          }
+          return appointments;
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,6 +197,8 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                       ),
                       const SizedBox(height: 16),
                       _buildQuickAccessSection(),
+                      const SizedBox(height: 24),
+                      _buildTodayAppointments(),
                       const SizedBox(height: 24),
                       _buildConsultationChart(),
                       const SizedBox(height: 24),
@@ -186,7 +237,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Olá, $_professionalName',
+                    'Olá, $_firstName',
                     style: GoogleFonts.montserrat(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -291,6 +342,90 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTodayAppointments() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Consultas de Hoje',
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppTheme.pretoPrincipal,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: StreamBuilder<List<AppointmentModel>>(
+            stream: _todayAppointmentsStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Center(
+                    child: Text(
+                      'Nenhuma consulta para hoje.',
+                      style: GoogleFonts.poppins(color: Colors.grey[600]),
+                    ),
+                  ),
+                );
+              }
+
+              final appointments = snapshot.data!;
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: appointments.length,
+                separatorBuilder: (context, index) =>
+                    const Divider(height: 1, indent: 16, endIndent: 16),
+                itemBuilder: (context, index) {
+                  final appointment = appointments[index];
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
+                      child: Text(
+                        DateFormat('HH:mm').format(appointment.dateTime),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryGreen,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      appointment.patientName ?? 'Paciente não identificado',
+                      style: GoogleFonts.montserrat(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -458,10 +593,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
         } else if (index == 2) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  OpcoesProfissional(nomeProfissional: _professionalName),
-            ),
+            MaterialPageRoute(builder: (context) => const OpcoesProfissional()),
           );
         }
       },

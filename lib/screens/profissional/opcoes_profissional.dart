@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/models/professional_model.dart';
 import 'package:plenonexo/screens/profissional/login/login_prof.dart';
 import 'package:plenonexo/services/auth_service.dart';
+import 'package:plenonexo/services/professional_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'dashboards_detalhados.dart';
 import 'perfil_profissional.dart';
 
 class OpcoesProfissional extends StatefulWidget {
-  final String nomeProfissional;
-
-  const OpcoesProfissional({Key? key, this.nomeProfissional = "Dr. Silva"})
-    : super(key: key);
+  const OpcoesProfissional({Key? key}) : super(key: key);
 
   @override
   State<OpcoesProfissional> createState() => _OpcoesProfissionalState();
@@ -21,6 +20,33 @@ class OpcoesProfissional extends StatefulWidget {
 class _OpcoesProfissionalState extends State<OpcoesProfissional> {
   int _selectedIndex = 2;
   final AuthService _authService = AuthService();
+  final ProfessionalService _professionalService = ProfessionalService();
+  ProfessionalModel? _currentProfessional;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfessionalData();
+  }
+
+  Future<void> _loadProfessionalData() async {
+    final professional = await _professionalService
+        .getCurrentProfessionalData();
+    if (mounted) {
+      setState(() {
+        _currentProfessional = professional;
+        _isLoading = false;
+      });
+    }
+  }
+
+  String get _firstName {
+    if (_currentProfessional == null || _currentProfessional!.name.isEmpty) {
+      return 'Profissional';
+    }
+    return _currentProfessional!.name.split(' ').first;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,35 +56,37 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
 
     return Scaffold(
       backgroundColor: AppTheme.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header fixo
-            _buildHeader(screenWidth, formattedDate),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+              child: Column(
+                children: [
+                  // Header fixo
+                  _buildHeader(screenWidth, formattedDate),
 
-            // Conteúdo principal com scroll
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 24),
+                  // Conteúdo principal com scroll
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 24),
 
-                      // Card de opções
-                      _buildOptionsCard(),
+                            // Card de opções
+                            _buildOptionsCard(),
 
-                      const SizedBox(height: 24),
-                    ],
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigation(),
+      bottomNavigationBar: _isLoading ? null : _buildBottomNavigation(),
     );
   }
 
@@ -77,12 +105,14 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: AppTheme.secondaryGreen,
-                child: Text(
-                  widget.nomeProfissional.substring(0, 1),
-                  style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
-                    fontSize: 18,
-                  ),
-                ),
+                child: _firstName.isNotEmpty
+                    ? Text(
+                        _firstName.substring(0, 1),
+                        style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                          fontSize: 18,
+                        ),
+                      )
+                    : const Icon(Icons.person, color: Colors.white),
               ),
               const SizedBox(width: 12),
               Column(
@@ -90,7 +120,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Olá, ${widget.nomeProfissional}",
+                    "Olá, $_firstName",
                     style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
                       fontSize: 18,
                     ),
@@ -133,9 +163,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PerfilProfissional(
-                    nomeProfissional: widget.nomeProfissional,
-                  ),
+                  builder: (context) => const PerfilProfissional(),
                 ),
               );
             },
@@ -278,7 +306,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
             context,
             MaterialPageRoute(
               builder: (context) => DashboardsDetalhados(
-                nomeProfissional: widget.nomeProfissional,
+                nomeProfissional: _currentProfessional?.name ?? 'Profissional',
               ),
             ),
           );

@@ -24,6 +24,13 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  String get _firstName {
+    if (widget.nomeProfissional.isEmpty) {
+      return 'Profissional';
+    }
+    return widget.nomeProfissional.split(' ').first;
+  }
+
   Stream<List<BarChartGroupData>> _getBarChartData() {
     final user = _auth.currentUser;
     if (user == null) return Stream.value([]);
@@ -84,6 +91,17 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
             (key, value) => MapEntry(key, (value / total) * 100),
           );
         });
+  }
+
+  String _translateStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return 'Agendada';
+      case 'cancelled':
+        return 'Cancelada';
+      default:
+        return status;
+    }
   }
 
   @override
@@ -147,7 +165,7 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
                 radius: 20,
                 backgroundColor: AppTheme.secondaryGreen,
                 child: Text(
-                  widget.nomeProfissional.substring(0, 1),
+                  _firstName.isNotEmpty ? _firstName.substring(0, 1) : 'P',
                   style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
                     fontSize: 18,
                   ),
@@ -159,7 +177,7 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Olá, ${widget.nomeProfissional}",
+                    "Olá, $_firstName",
                     style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
                       fontSize: 18,
                     ),
@@ -402,7 +420,7 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
     data.forEach((status, value) {
       indicators.add(
         _buildIndicator(
-          status,
+          _translateStatus(status),
           AppTheme.chartColors[i % AppTheme.chartColors.length],
         ),
       );
@@ -479,10 +497,7 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
         } else if (index == 2) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  OpcoesProfissional(nomeProfissional: widget.nomeProfissional),
-            ),
+            MaterialPageRoute(builder: (context) => const OpcoesProfissional()),
           );
         }
       },

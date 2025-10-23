@@ -195,7 +195,6 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
         selectedItemColor: AppTheme.azul9,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          // Lógica de navegação para esta tela
           switch (index) {
             case 0: // Início
               Navigator.of(context).pushAndRemoveUntil(

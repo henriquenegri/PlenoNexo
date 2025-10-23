@@ -38,7 +38,7 @@ class UserService {
 
   /// Busca os dados do utilizador (paciente) atualmente logado.
   Future<UserModel?> getCurrentUserData() async {
-    final firebaseUser = _authService.currentUser;
+    final firebaseUser = _authService.currentUserAuth;
 
     if (firebaseUser != null) {
       try {
@@ -87,7 +87,7 @@ class UserService {
 
       // If password is provided, update it in Firebase Auth
       if (password != null && password.isNotEmpty) {
-        final firebaseUser = _authService.currentUser;
+        final firebaseUser = _authService.currentUserAuth;
         if (firebaseUser != null) {
           await firebaseUser.updatePassword(password);
         }
@@ -103,9 +103,6 @@ class UserService {
     try {
       // Delete user document from Firestore
       await _firestore.collection('users').doc(uid).delete();
-
-      // You might also want to delete related data like appointments, etc.
-      // This would depend on your data structure
     } catch (e) {
       print("Erro ao excluir conta do utilizador: $e");
       rethrow;

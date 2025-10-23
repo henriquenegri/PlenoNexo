@@ -27,7 +27,7 @@ class _MainProfissionalScreenState extends State<MainProfissionalScreen> {
     _pages = [
       const DashboardProfissional(),
       DashboardsDetalhados(nomeProfissional: widget.nomeProfissional),
-      OpcoesProfissional(nomeProfissional: widget.nomeProfissional),
+      const OpcoesProfissional(),
     ];
   }
 

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plenonexo/models/user_model.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -90,5 +91,34 @@ class AuthService {
   }
 
   /// Retorna o utilizador do Firebase atualmente logado.
-  User? get currentUser => _auth.currentUser;
+  User? get currentUserAuth => _auth.currentUser;
+
+  Future<UserModel?> getCurrentUserModel() async {
+    // Passo 1: Pega o usuário autenticado (a credencial)
+    final userAuth = _auth.currentUser;
+
+    if (userAuth == null) {
+      // Se não há ninguém logado, não há perfil para buscar.
+      return null;
+    }
+
+    try {
+      // Passo 2: Usa o UID para buscar o documento no Firestore
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(userAuth.uid)
+          .get();
+
+      if (userDoc.exists) {
+        // Passo 3: Se o documento existe, converte para UserModel e retorna
+        return UserModel.fromFirestore(userDoc);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      // Tratar possíveis erros de rede, etc.
+      print("Erro ao buscar dados do usuário: $e");
+      return null;
+    }
+  }
 }

@@ -91,7 +91,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         });
       }
     } catch (e) {
-      // Idealmente, usar um logger aqui
+      debugPrint('Erro ao carregar horários indisponíveis: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoadingSlots = false);
@@ -120,21 +120,94 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return const Color(0xFF3B748F); // Blue for available
   }
 
+  /// VALIDAÇÃO 1: Verifica se o horário ainda está disponível com este profissional
+  Future<bool> _validateProfessionalAvailability(
+    DateTime appointmentDateTime,
+  ) async {
+    try {
+      final appointments = await _appointmentService
+          .getProfessionalAppointmentsByDate(
+            widget.professional.uid,
+            appointmentDateTime,
+          );
+
+      // Verifica se já existe um agendamento no mesmo horário com este profissional
+      final hasConflict = appointments.any(
+        (appointment) =>
+            appointment.dateTime.hour == appointmentDateTime.hour &&
+            appointment.dateTime.minute == appointmentDateTime.minute,
+      );
+
+      if (hasConflict) {
+        debugPrint(
+          'Conflito: Profissional já tem consulta em ${DateFormat('dd/MM/yyyy HH:mm').format(appointmentDateTime)}',
+        );
+      }
+
+      return !hasConflict;
+    } catch (e) {
+      debugPrint('Erro ao validar disponibilidade do profissional: $e');
+      return false;
+    }
+  }
+
+  /// VALIDAÇÃO 2: Verifica se o usuário já tem QUALQUER consulta neste dia/horário
+  /// (independente do profissional)
+  Future<bool> _checkUserHasConflictingAppointment(
+    DateTime appointmentDateTime,
+  ) async {
+    try {
+      if (_currentUser == null) {
+        debugPrint('Erro: Usuário não identificado');
+        return true; // Bloqueia se não conseguir identificar o usuário
+      }
+
+      // Busca TODOS os agendamentos do usuário
+      final userAppointments = await _appointmentService.getPatientAppointments(
+        _currentUser!.uid,
+      );
+
+      // Verifica se há conflito no MESMO DIA E HORÁRIO
+      final hasConflict = userAppointments.any((appointment) {
+        // Ignora consultas canceladas
+        if (appointment.status.toLowerCase() == 'cancelled') return false;
+
+        // Verifica se é no mesmo dia e horário
+        return appointment.dateTime.year == appointmentDateTime.year &&
+            appointment.dateTime.month == appointmentDateTime.month &&
+            appointment.dateTime.day == appointmentDateTime.day &&
+            appointment.dateTime.hour == appointmentDateTime.hour &&
+            appointment.dateTime.minute == appointmentDateTime.minute;
+      });
+
+      if (hasConflict) {
+        debugPrint(
+          'CONFLITO DETECTADO: Usuário já tem consulta agendada em ${DateFormat('dd/MM/yyyy HH:mm').format(appointmentDateTime)}',
+        );
+        return true; // Tem conflito
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Erro ao verificar conflitos do usuário: $e');
+      return false;
+    }
+  }
+
   Future<void> _scheduleAppointment() async {
     if (_selectedTimeSlot == null || _selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor, selecione um horário'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      _showErrorSnackBar('Por favor, selecione um horário');
+      return;
+    }
+
+    if (_currentUser == null) {
+      _showErrorSnackBar('Erro: Usuário não identificado');
       return;
     }
 
     setState(() => _isScheduling = true);
 
     try {
-      // Create appointment date (today + selected time)
+      // Criar o DateTime do agendamento
       final timeParts = _selectedTimeSlot!.split(':');
       final appointmentDateTime = DateTime(
         _selectedDate!.year,
@@ -144,6 +217,49 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         int.parse(timeParts[1]),
       );
 
+      debugPrint('=== INICIANDO VALIDAÇÕES DE AGENDAMENTO ===');
+      debugPrint('Usuário: ${_currentUser!.name} (${_currentUser!.uid})');
+      debugPrint('Profissional: ${widget.professional.name}');
+      debugPrint(
+        'Data/Hora: ${DateFormat('dd/MM/yyyy HH:mm').format(appointmentDateTime)}',
+      );
+
+      // VALIDAÇÃO 1: Verificar se o horário ainda está disponível com o profissional
+      debugPrint('Validando disponibilidade do profissional...');
+      final isProfessionalAvailable = await _validateProfessionalAvailability(
+        appointmentDateTime,
+      );
+
+      if (!isProfessionalAvailable) {
+        if (mounted) {
+          _showErrorSnackBar(
+            'Este horário já está ocupado com este profissional. Por favor, selecione outro horário.',
+          );
+          // Recarregar os horários disponíveis
+          await _loadUnavailableSlots(_selectedDate!);
+        }
+        return;
+      }
+      debugPrint('✓ Profissional disponível');
+
+      // VALIDAÇÃO 2: Verificar se o usuário já tem consulta neste horário
+      debugPrint('Verificando conflitos de horário do usuário...');
+      final userHasConflict = await _checkUserHasConflictingAppointment(
+        appointmentDateTime,
+      );
+
+      if (userHasConflict) {
+        if (mounted) {
+          _showErrorSnackBar(
+            'Você já possui uma consulta agendada neste horário. Não é possível marcar duas consultas ao mesmo tempo.',
+          );
+        }
+        return;
+      }
+      debugPrint('✓ Sem conflitos para o usuário');
+
+      debugPrint('Criando agendamento...');
+      // Criar o agendamento
       await _appointmentService.createAppointment(
         patientId: _currentUser!.uid,
         professionalId: widget.professional.uid,
@@ -152,29 +268,63 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         subject: 'Consulta com ${widget.professional.name}',
       );
 
+      debugPrint('✓ Agendamento criado com sucesso!');
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Consulta agendada com sucesso!'),
             backgroundColor: Color(0xFF5E8D6B),
+            duration: Duration(seconds: 3),
           ),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true); // Retorna true para indicar sucesso
       }
     } catch (e) {
+      debugPrint('ERRO ao agendar: $e');
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao agendar consulta: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Tratamento de erro específico
+        String errorMessage = 'Erro ao agendar consulta';
+
+        final errorString = e.toString().toLowerCase();
+
+        if (errorString.contains('already exists') ||
+            errorString.contains('já existe') ||
+            errorString.contains('duplicate') ||
+            errorString.contains('conflict')) {
+          errorMessage =
+              'Este horário já está ocupado. Por favor, selecione outro.';
+          // Recarregar os horários disponíveis
+          await _loadUnavailableSlots(_selectedDate!);
+        } else {
+          errorMessage = 'Erro ao agendar consulta: ${e.toString()}';
+        }
+
+        _showErrorSnackBar(errorMessage);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isScheduling = false);
       }
     }
+  }
 
-    if (mounted) {
-      setState(() => _isScheduling = false);
-    }
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFFC54B4B),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -362,8 +512,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         unselectedItemColor: const Color(
           0xFF2A475E,
         ).withAlpha((0.6 * 255).round()),
-        selectedItemColor: const Color(0xFF2A475E), // This is fine
-        currentIndex: 1, // Schedule screen is part of the consultation flow
+        selectedItemColor: const Color(0xFF2A475E),
+        currentIndex: 1,
         onTap: (index) {
           switch (index) {
             case 0:
@@ -443,9 +593,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           }
         },
         enabledDayPredicate: (day) {
-          // Desabilita domingos e dias em que o profissional não atende
-          final weekday = day.weekday; // 1=Seg, 7=Dom
-          if (weekday == 7) return false; // Desabilita todos os domingos
+          final weekday = day.weekday;
+          if (weekday == 7) return false;
           return widget.professional.availableDays[weekday - 1];
         },
         calendarStyle: CalendarStyle(

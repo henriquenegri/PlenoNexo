@@ -42,7 +42,7 @@ class _AvaliacaoScreenState extends State<AvaliacaoScreen> {
       return;
     }
 
-    final currentUser = _authService.currentUser;
+    final currentUser = await _authService.getCurrentUserModel();
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Erro: Usuário não autenticado.')),
@@ -65,9 +65,8 @@ class _AvaliacaoScreenState extends State<AvaliacaoScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Avaliação enviada com sucesso!')),
         );
-        // Fecha a tela de avaliação e a tela anterior (detalhes do agendamento)
-        int count = 0;
-        Navigator.of(context).popUntil((_) => count++ >= 2);
+        // Fecha a tela de avaliação
+        Navigator.of(context).pop(true); // Retorna true para indicar sucesso
       }
     } catch (e) {
       if (mounted) {
