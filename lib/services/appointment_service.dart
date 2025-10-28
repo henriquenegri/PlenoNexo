@@ -13,10 +13,13 @@ class AppointmentService {
     required double consultationPrice,
     String status = 'scheduled',
   }) async {
+    // Garantir que a data seja salva em UTC para consistência
+    final utcDateTime = dateTime.toUtc();
+
     await _firestore.collection('appointments').add({
       'patientId': patientId,
       'professionalId': professionalId,
-      'dateTime': Timestamp.fromDate(dateTime),
+      'dateTime': Timestamp.fromDate(utcDateTime),
       'subject': subject,
       'price': consultationPrice,
       'status': status,
@@ -72,17 +75,29 @@ class AppointmentService {
       return [];
     }
   }
-  
+
   /// Busca agendamentos de um profissional em uma data específica
   Future<List<AppointmentModel>> getProfessionalAppointmentsByDate(
     String professionalId,
-    DateTime date,
+    DateTime selectedDate,
   ) async {
-    try {
-      final startOfDay = DateTime(date.year, date.month, date.day);
-      final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    // Garante que a busca seja feita em UTC para consistência
+    final startOfDay = DateTime.utc(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+    );
+    final endOfDay = DateTime.utc(
+      selectedDate.year,
+      selectedDate.month,
+      selectedDate.day,
+      23,
+      59,
+      59,
+    );
 
-      final querySnapshot = await _firestore
+    try {
+      final snapshot = await _firestore
           .collection('appointments')
           .where('professionalId', isEqualTo: professionalId)
           .where(
@@ -90,10 +105,9 @@ class AppointmentService {
             isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
           )
           .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
-          .orderBy('dateTime')
           .get();
 
-      return querySnapshot.docs
+      return snapshot.docs
           .map((doc) => AppointmentModel.fromFirestore(doc))
           .toList();
     } catch (e) {
@@ -104,7 +118,9 @@ class AppointmentService {
 
   // Obter agendamentos de um paciente por mês
   Future<List<AppointmentModel>> getPatientAppointmentsByMonth(
-      String patientId, DateTime month) async {
+    String patientId,
+    DateTime month,
+  ) async {
     try {
       final startOfMonth = DateTime(month.year, month.month, 1);
       final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
@@ -112,8 +128,14 @@ class AppointmentService {
       final querySnapshot = await _firestore
           .collection('appointments')
           .where('patientId', isEqualTo: patientId)
-          .where('dateTime', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth))
-          .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
+          .where(
+            'dateTime',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+          )
+          .where(
+            'dateTime',
+            isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth),
+          )
           .orderBy('dateTime')
           .get();
 

@@ -30,9 +30,11 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
 
   Future<void> _loadUserData() async {
     final user = await _userService.getCurrentUserData();
-    setState(() {
-      _currentUser = user;
-    });
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+      });
+    }
   }
 
   String _getFirstName() {
@@ -40,6 +42,36 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       return 'Utilizador';
     }
     return _currentUser!.name.split(' ').first;
+  }
+
+  Future<void> _logout() async {
+    try {
+      await _authService.signOut();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logout realizado com sucesso'),
+            backgroundColor: Color(0xFF5E8D6B),
+          ),
+        );
+
+        // Navigate to welcome screen
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao fazer logout: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _deleteAccount() async {
@@ -152,7 +184,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 50),
+                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

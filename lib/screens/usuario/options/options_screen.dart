@@ -129,7 +129,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 50),
+                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +146,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
                         DateTime.now().toString().split(' ')[0],
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          color: const Color(0xFF2A475E).withAlpha((255 * 0.7).round()),
+                          color: const Color(
+                            0xFF2A475E,
+                          ).withAlpha((255 * 0.7).round()),
                         ),
                       ),
                     ],
@@ -154,7 +156,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
                   const Spacer(),
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2A475E).withAlpha((255 * 0.9).round()),
+                      color: const Color(
+                        0xFF2A475E,
+                      ).withAlpha((255 * 0.9).round()),
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
@@ -216,10 +220,14 @@ class _OptionsScreenState extends State<OptionsScreen> {
                                   vertical: 20,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha((255 * 0.1).round()),
+                                  color: Colors.white.withAlpha(
+                                    (255 * 0.1).round(),
+                                  ),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.white.withAlpha((255 * 0.2).round()),
+                                    color: Colors.white.withAlpha(
+                                      (255 * 0.2).round(),
+                                    ),
                                   ),
                                 ),
                                 child: Row(
@@ -302,7 +310,9 @@ class _OptionsScreenState extends State<OptionsScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: const Color(0xFF2A475E).withAlpha((255 * 0.6).round()),
+        unselectedItemColor: const Color(
+          0xFF2A475E,
+        ).withAlpha((255 * 0.6).round()),
         selectedItemColor: const Color(0xFF2A475E),
         currentIndex: 2, // Options screen is the profile tab
         onTap: (index) {

@@ -93,7 +93,7 @@ class _UserLoginPageState extends State<UserLoginPage> {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 200),
+                SvgPicture.asset('assets/img/NeuroConecta.svg', height: 200),
                 const SizedBox(height: 8),
                 Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
                 const SizedBox(height: 25),

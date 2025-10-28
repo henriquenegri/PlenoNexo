@@ -302,7 +302,7 @@ class _ProfessionalRegistrationScreenState
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
-                  SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 100),
+                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 120),
                   const SizedBox(height: 8),
                   Text(
                     'PlenoNexo',

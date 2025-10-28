@@ -30,26 +30,24 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   bool _isLoadingSlots = false;
   bool _isScheduling = false;
 
-  final List<String> _timeSlots = [
-    '08:00',
-    '08:30',
-    '09:00',
-    '09:30',
-    '10:00',
-    '10:30',
-    '11:00',
-    '11:30',
-    '14:00',
-    '14:30',
-    '15:00',
-    '15:30',
-    '16:00',
-    '16:30',
-    '17:00',
-    '17:30',
-    '18:00',
-    '18:30',
-  ];
+  // Gerar horários dinamicamente baseado na disponibilidade do profissional
+  List<String> _generateTimeSlots() {
+    final List<String> slots = [];
+
+    // Horários da manhã (8:00 - 12:00)
+    for (int hour = 8; hour < 12; hour++) {
+      slots.add('${hour.toString().padLeft(2, '0')}:00');
+      slots.add('${hour.toString().padLeft(2, '0')}:30');
+    }
+
+    // Horários da tarde (14:00 - 19:00)
+    for (int hour = 14; hour < 19; hour++) {
+      slots.add('${hour.toString().padLeft(2, '0')}:00');
+      slots.add('${hour.toString().padLeft(2, '0')}:30');
+    }
+
+    return slots;
+  }
 
   List<String> _unavailableSlots = [];
 
@@ -69,17 +67,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Future<void> _loadUnavailableSlots(DateTime date) async {
-    setState(() {
-      _isLoadingSlots = true;
-      _unavailableSlots = [];
-      _selectedTimeSlot = null;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoadingSlots = true;
+        _unavailableSlots = [];
+        _selectedTimeSlot = null;
+      });
+    }
 
     try {
       final appointments = await _appointmentService
           .getProfessionalAppointmentsByDate(widget.professional.uid, date);
 
-      final unavailable = appointments.map((appointment) {
+      // Filtrar apenas consultas não canceladas
+      final activeAppointments = appointments
+          .where(
+            (appointment) => appointment.status.toLowerCase() != 'cancelled',
+          )
+          .toList();
+
+      final unavailable = activeAppointments.map((appointment) {
         final hour = appointment.dateTime.hour.toString().padLeft(2, '0');
         final minute = appointment.dateTime.minute.toString().padLeft(2, '0');
         return '$hour:$minute';
@@ -115,9 +122,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return const Color(0xFFC54B4B); // Red for unavailable
     }
     if (_selectedTimeSlot == timeSlot) {
-      return const Color(0xFF5E8D6B); // Green for selected
+      return const Color(0xFF5E8D6B);
     }
-    return const Color(0xFF3B748F); // Blue for available
+    return const Color(0xFF3B748F);
   }
 
   /// VALIDAÇÃO 1: Verifica se o horário ainda está disponível com este profissional
@@ -131,8 +138,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             appointmentDateTime,
           );
 
+      // Filtrar apenas consultas não canceladas
+      final activeAppointments = appointments
+          .where(
+            (appointment) => appointment.status.toLowerCase() != 'cancelled',
+          )
+          .toList();
+
       // Verifica se já existe um agendamento no mesmo horário com este profissional
-      final hasConflict = appointments.any(
+      final hasConflict = activeAppointments.any(
         (appointment) =>
             appointment.dateTime.hour == appointmentDateTime.hour &&
             appointment.dateTime.minute == appointmentDateTime.minute,
@@ -167,11 +181,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         _currentUser!.uid,
       );
 
-      // Verifica se há conflito no MESMO DIA E HORÁRIO
-      final hasConflict = userAppointments.any((appointment) {
-        // Ignora consultas canceladas
-        if (appointment.status.toLowerCase() == 'cancelled') return false;
+      // Filtrar apenas consultas não canceladas
+      final activeAppointments = userAppointments
+          .where(
+            (appointment) => appointment.status.toLowerCase() != 'cancelled',
+          )
+          .toList();
 
+      // Verifica se há conflito no MESMO DIA E HORÁRIO
+      final hasConflict = activeAppointments.any((appointment) {
         // Verifica se é no mesmo dia e horário
         return appointment.dateTime.year == appointmentDateTime.year &&
             appointment.dateTime.month == appointmentDateTime.month &&
@@ -204,7 +222,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       return;
     }
 
-    setState(() => _isScheduling = true);
+    if (mounted) {
+      setState(() => _isScheduling = true);
+    }
 
     try {
       // Criar o DateTime do agendamento
@@ -278,7 +298,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             duration: Duration(seconds: 3),
           ),
         );
-        Navigator.pop(context, true); // Retorna true para indicar sucesso
+        // Retorna true para indicar sucesso e recarregar a tela principal
+        Navigator.pop(context, true);
       }
     } catch (e) {
       debugPrint('ERRO ao agendar: $e');
@@ -346,7 +367,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 50),
+                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -585,10 +606,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         startingDayOfWeek: StartingDayOfWeek.monday,
         onDaySelected: (selectedDay, focusedDay) {
           if (!isSameDay(_selectedDate, selectedDay)) {
-            setState(() {
-              _selectedDate = selectedDay;
-              _focusedDay = focusedDay;
-            });
+            if (mounted) {
+              setState(() {
+                _selectedDate = selectedDay;
+                _focusedDay = focusedDay;
+              });
+            }
             _loadUnavailableSlots(selectedDay);
           }
         },
@@ -628,6 +651,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
+    final timeSlots = _generateTimeSlots();
+
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -637,9 +662,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         mainAxisSpacing: 12,
         childAspectRatio: 2.5,
       ),
-      itemCount: _timeSlots.length,
+      itemCount: timeSlots.length,
       itemBuilder: (context, index) {
-        final timeSlot = _timeSlots[index];
+        final timeSlot = timeSlots[index];
         final isAvailable = _isSlotAvailable(timeSlot);
 
         return ElevatedButton(

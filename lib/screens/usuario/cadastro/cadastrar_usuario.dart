@@ -134,7 +134,9 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
     }
     // ... outras validações ...
 
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
     // Passo 1: Tenta criar a conta de autenticação (chama o "Porteiro")
     final (userCredential, authError) = await _authService.signUp(
@@ -266,7 +268,7 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                     onPressed: () => Navigator.pop(context),
                   ),
                 ),
-                SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 100),
+                SvgPicture.asset('assets/img/NeuroConecta.svg', height: 100),
                 const SizedBox(height: 8),
                 Text(
                   'PlenoNexo',
@@ -338,9 +340,11 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                                       )
                                       .toList(),
                                   onChanged: (newValue) {
-                                    setState(
-                                      () => _estadoSelecionado = newValue,
-                                    );
+                                    if (mounted) {
+                                      setState(
+                                        () => _estadoSelecionado = newValue,
+                                      );
+                                    }
                                   },
                                   decoration: InputDecoration(
                                     filled: true,
@@ -401,9 +405,13 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                                   (label) => ChoiceChip(
                                     label: Text(label),
                                     selected: _paraQuemERegistro == label,
-                                    onSelected: (isSelected) => setState(
-                                      () => _paraQuemERegistro = label,
-                                    ),
+                                    onSelected: (isSelected) {
+                                      if (mounted) {
+                                        setState(
+                                          () => _paraQuemERegistro = label,
+                                        );
+                                      }
+                                    },
                                     backgroundColor: AppTheme.azul9,
                                     selectedColor: AppTheme.azul5,
                                     labelStyle: AppTheme.corpoTextoBranco
@@ -423,8 +431,11 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                         children: [
                           Checkbox(
                             value: _termosAceitos,
-                            onChanged: (value) =>
-                                setState(() => _termosAceitos = value!),
+                            onChanged: (value) {
+                              if (mounted) {
+                                setState(() => _termosAceitos = value!);
+                              }
+                            },
                             activeColor: AppTheme.brancoPrincipal,
                             checkColor: AppTheme.azul9,
                           ),
@@ -514,21 +525,23 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                 ),
                 value: isSelected,
                 onChanged: (bool? value) {
-                  setState(() {
-                    if (neurodiversidade == 'Nenhum') {
-                      if (value == true) {
-                        _neuroDiversidades.clear();
-                        _neuroDiversidades.add('Nenhum');
-                      }
-                    } else {
-                      _neuroDiversidades.remove('Nenhum');
-                      if (value == true) {
-                        _neuroDiversidades.add(neurodiversidade);
+                  if (mounted) {
+                    setState(() {
+                      if (neurodiversidade == 'Nenhum') {
+                        if (value == true) {
+                          _neuroDiversidades.clear();
+                          _neuroDiversidades.add('Nenhum');
+                        }
                       } else {
-                        _neuroDiversidades.remove(neurodiversidade);
+                        _neuroDiversidades.remove('Nenhum');
+                        if (value == true) {
+                          _neuroDiversidades.add(neurodiversidade);
+                        } else {
+                          _neuroDiversidades.remove(neurodiversidade);
+                        }
                       }
-                    }
-                  });
+                    });
+                  }
                 },
                 activeColor: AppTheme.azul13,
                 checkColor: AppTheme.brancoPrincipal,

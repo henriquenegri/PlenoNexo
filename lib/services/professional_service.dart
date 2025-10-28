@@ -130,6 +130,17 @@ class ProfessionalService {
     }
   }
 
+  // Função para excluir a conta do profissional do Firestore
+  Future<void> deleteProfessionalAccount(String uid) async {
+    try {
+      // Exclui o documento do profissional do Firestore
+      await _firestore.collection('users').doc(uid).delete();
+    } catch (e) {
+      print("Erro ao excluir conta do profissional: $e");
+      rethrow;
+    }
+  }
+
   // Função para retornar as áreas de atuação do array local
   List<String> getAtuationAreas() {
     return atuationAreas;
