@@ -31,7 +31,7 @@ class ForgotPasswordScreen extends StatelessWidget {
                 ),
 
                 // --- LOGO E NOME DO APP ---
-                SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 200),
+                SvgPicture.asset('assets/img/NeuroConecta.svg', height: 200),
                 const SizedBox(height: 8),
                 Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
                 const SizedBox(height: 40),

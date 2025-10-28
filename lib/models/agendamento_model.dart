@@ -26,11 +26,16 @@ class AppointmentModel {
   factory AppointmentModel.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
+    // Converter a data do Firestore para o timezone local
+    final timestamp = data['dateTime'] as Timestamp;
+    final utcDateTime = timestamp.toDate();
+    final localDateTime = utcDateTime.toLocal();
+
     return AppointmentModel(
       id: doc.id,
       patientId: data['patientId'] ?? '',
       professionalId: data['professionalId'] ?? '',
-      dateTime: (data['dateTime'] as Timestamp).toDate(),
+      dateTime: localDateTime,
       status: data['status'] ?? 'scheduled',
       consultationPrice: (data['price'] as num?)?.toDouble() ?? 0.0,
       subject: data['subject'] ?? 'Consulta',

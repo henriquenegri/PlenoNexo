@@ -65,13 +65,22 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
         style: TextStyle(color: AppTheme.brancoPrincipal, fontSize: 24),
       ),
       title: Text(title, style: AppTheme.corpoTextoBranco),
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => SelectProfessionalScreen(specialty: title),
           ),
         );
+
+        // Se um agendamento foi criado com sucesso, recarregar a tela principal
+        if (result == true) {
+          // Navegar de volta para a tela principal para mostrar o novo agendamento
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const UserHomeScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
       },
     );
   }
@@ -114,7 +123,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/logoPlenoNexo.svg', height: 50),
+                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

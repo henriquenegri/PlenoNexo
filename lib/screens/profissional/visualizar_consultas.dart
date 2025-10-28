@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 
@@ -58,7 +59,11 @@ class _VisualizarConsultasPageState extends State<VisualizarConsultasPage> {
       appBar: AppBar(
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: AppTheme.brancoPrincipal,
-        title: const Text('Minhas Consultas'),
+        title: Row(
+          children: [
+            SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
+          ],
+        ),
         elevation: 0,
       ),
       body: StreamBuilder<List<AppointmentModel>>(
