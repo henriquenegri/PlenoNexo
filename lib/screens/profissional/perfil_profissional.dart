@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/professional_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/services/professional_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
@@ -37,13 +36,6 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
         _isLoading = false;
       });
     }
-  }
-
-  String get _firstName {
-    if (_currentProfessional == null || _currentProfessional!.name.isEmpty) {
-      return 'Profissional';
-    }
-    return _currentProfessional!.name.split(' ').first;
   }
 
   @override
@@ -98,7 +90,7 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Avatar e nome
-          SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
+          Image.asset('assets/img/PlenoNexo.png', height: 40),
 
           // Ícone de notificação
           Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),

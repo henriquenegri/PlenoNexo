@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
@@ -11,6 +10,7 @@ import 'package:plenonexo/services/appointment_service.dart';
 import 'package:plenonexo/services/professional_service.dart';
 import 'package:plenonexo/services/user_service.dart';
 import 'package:plenonexo/screens/usuario/options/options_screen.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AppointmentWithProfessional {
   final AppointmentModel appointment;
@@ -332,7 +332,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
+                  Image.asset('assets/img/PlenoNexo.png', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,16 +476,30 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
               break;
           }
         },
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.star_outline),
-            activeIcon: Icon(Icons.star),
-            label: 'Avaliações',
+            icon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                const Color(0xFF2A475E).withOpacity(0.6),
+                BlendMode.srcIn,
+              ),
+            ),
+            activeIcon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                const Color(0xFF2A475E),
+                BlendMode.srcIn,
+              ),
+            ),
+            label: 'Consultas',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

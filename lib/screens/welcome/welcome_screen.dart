@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/screens/profissional/login/login_prof.dart';
 import 'package:plenonexo/screens/usuario/login/login_page.dart';
 import 'package:plenonexo/utils/app_theme.dart';
@@ -12,14 +11,13 @@ class WelcomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.brancoPrincipal,
       body: SafeArea(
-        // Usamos um Padding geral para a tela não ficar colada nas bordas
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 60.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // --- LOGO E NOME DO APP ---
-              SvgPicture.asset('assets/img/NeuroConecta.svg', height: 200),
+              Image.asset('assets/img/PlenoNexo.png', height: 200),
               const SizedBox(height: 8),
               Text(
                 'PlenoNexo',
@@ -83,7 +81,6 @@ class WelcomeScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // MUDANÇA 3: Aumentamos o espaço entre os botões.
                       const SizedBox(height: 50.0),
 
                       // --- BOTÃO PARA FLUXO DO PROFISSIONAL ---

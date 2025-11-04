@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:plenonexo/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plenonexo/services/appointment_service.dart';
+import 'package:plenonexo/services/professional_service.dart'; // Corrigido
 import '../../utils/app_theme.dart';
 import 'dashboards_detalhados.dart';
 import 'opcoes_profissional.dart';
@@ -22,28 +22,35 @@ class DashboardProfissional extends StatefulWidget {
 class _DashboardProfissionalState extends State<DashboardProfissional> {
   int _selectedIndex = 0; // Home é o primeiro item
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AppointmentService _appointmentService = AppointmentService();
+  final ProfessionalService _professionalService = ProfessionalService(); // Corrigido
+
   late Stream<List<AppointmentModel>> _todayAppointmentsStream;
-  late Stream<List<BarChartGroupData>> _chartDataStream;
+  late Stream<List<AppointmentModel>> _chartDataStream;
   String _professionalName = "...";
 
   @override
   void initState() {
     super.initState();
     _loadProfessionalName();
-    _chartDataStream = _getChartData();
-    _todayAppointmentsStream = _getTodayAppointmentsStream();
+    final user = _auth.currentUser;
+    if (user != null) {
+      _todayAppointmentsStream =
+          _appointmentService.getTodayProfessionalAppointmentsStream(user.uid);
+      _chartDataStream = _appointmentService.getAppointmentsForChartStream(user.uid);
+    } else {
+      _todayAppointmentsStream = Stream.value([]);
+      _chartDataStream = Stream.value([]);
+    }
   }
 
   void _loadProfessionalName() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      if (mounted) {
-        setState(() {
-          _professionalName = userDoc.data()?['name'] ?? 'Profissional';
-        });
-      }
+    // Corrigido para usar ProfessionalService
+    final professional = await _professionalService.getCurrentProfessionalData();
+    if (mounted && professional != null) {
+      setState(() {
+        _professionalName = professional.name;
+      });
     }
   }
 
@@ -54,64 +61,45 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     return _professionalName.split(' ').first;
   }
 
-  Stream<List<BarChartGroupData>> _getChartData() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return Stream.value([]);
+  List<BarChartGroupData> _generateChartData(List<AppointmentModel> appointments) {
+    if (appointments.isEmpty) {
+      return _generateEmptyChartData();
     }
 
-    return _firestore
-        .collection('appointments') // CORREÇÃO: Usar a coleção 'appointments'
-        .where('professionalId', isEqualTo: user.uid)
-        .where(
-          'dateTime',
-          isGreaterThanOrEqualTo: DateTime.now().subtract(
-            const Duration(days: 6),
+    Map<int, int> dailyCounts = {};
+    for (var appointment in appointments) {
+      final day = appointment.dateTime.weekday;
+      dailyCounts[day] = (dailyCounts[day] ?? 0) + 1;
+    }
+
+    final List<Color> barColors = [
+      AppTheme.chartPurple,
+      AppTheme.chartLightBlue,
+      AppTheme.chartGrayBlue,
+      AppTheme.chartLightGreen,
+      AppTheme.chartDarkGray,
+      AppTheme.chartPurple,
+      AppTheme.chartLightBlue,
+    ];
+
+    return List.generate(6, (index) {
+      final day = DateTime.now().subtract(Duration(days: 5 - index));
+      final count = dailyCounts[day.weekday]?.toDouble() ?? 0.0;
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: count,
+            color: barColors[index % barColors.length],
+            width: 15,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(4),
+            ),
           ),
-        )
-        .snapshots()
-        .map((snapshot) {
-          if (snapshot.docs.isEmpty) {
-            return _generateEmptyChartData();
-          }
-
-          Map<int, int> dailyCounts = {};
-          for (var doc in snapshot.docs) {
-            final appointment = doc.data();
-            final date = (appointment['dateTime'] as Timestamp).toDate();
-            final day = date.weekday;
-            dailyCounts[day] = (dailyCounts[day] ?? 0) + 1;
-          }
-
-          final List<Color> barColors = [
-            AppTheme.chartPurple,
-            AppTheme.chartLightBlue,
-            AppTheme.chartGrayBlue,
-            AppTheme.chartLightGreen,
-            AppTheme.chartDarkGray,
-            AppTheme.chartPurple,
-            AppTheme.chartLightBlue,
-          ];
-
-          return List.generate(6, (index) {
-            final day = DateTime.now().subtract(Duration(days: 5 - index));
-            final count = dailyCounts[day.weekday]?.toDouble() ?? 0.0;
-            return BarChartGroupData(
-              x: index,
-              barRods: [
-                BarChartRodData(
-                  toY: count,
-                  color: barColors[index % barColors.length],
-                  width: 15,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-              ],
-            );
-          });
-        });
+        ],
+      );
+    });
   }
 
   List<BarChartGroupData> _generateEmptyChartData() {
@@ -131,44 +119,6 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
         ],
       );
     });
-  }
-
-  Stream<List<AppointmentModel>> _getTodayAppointmentsStream() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return Stream.value([]);
-    }
-
-    final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
-    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
-    return _firestore
-        .collection('appointments')
-        .where('professionalId', isEqualTo: user.uid)
-        .where(
-          'dateTime',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-        )
-        .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
-        .orderBy('dateTime')
-        .snapshots()
-        .asyncMap((snapshot) async {
-          List<AppointmentModel> appointments = [];
-          for (var doc in snapshot.docs) {
-            final appointment = AppointmentModel.fromFirestore(doc);
-            final userDoc = await _firestore
-                .collection('users')
-                .doc(appointment.patientId)
-                .get();
-            if (userDoc.exists) {
-              final userModel = UserModel.fromFirestore(userDoc);
-              appointment.patientName = userModel.name;
-            }
-            appointments.add(appointment);
-          }
-          return appointments;
-        });
   }
 
   @override
@@ -454,7 +404,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
             const SizedBox(height: 24),
             SizedBox(
               height: 200,
-              child: StreamBuilder<List<BarChartGroupData>>(
+              child: StreamBuilder<List<AppointmentModel>>(
                 stream: _chartDataStream,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -470,6 +420,8 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                       ),
                     );
                   }
+
+                  final chartData = _generateChartData(snapshot.data!);
 
                   return BarChart(
                     BarChartData(
@@ -534,7 +486,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                         drawVerticalLine: false,
                       ),
                       borderData: FlBorderData(show: false),
-                      barGroups: snapshot.data!,
+                      barGroups: chartData,
                     ),
                   );
                 },

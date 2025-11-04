@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:plenonexo/models/user_model.dart';
+import 'package:plenonexo/services/appointment_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 
 class VisualizarConsultasPage extends StatefulWidget {
@@ -18,38 +16,19 @@ class VisualizarConsultasPage extends StatefulWidget {
 
 class _VisualizarConsultasPageState extends State<VisualizarConsultasPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AppointmentService _appointmentService = AppointmentService();
+  late Stream<List<AppointmentModel>> _appointmentsStream;
 
-  Stream<List<AppointmentModel>> _getAppointmentsStream() {
+  @override
+  void initState() {
+    super.initState();
     final user = _auth.currentUser;
-    if (user == null) {
-      return Stream.value([]);
+    if (user != null) {
+      _appointmentsStream = _appointmentService
+          .getProfessionalAppointmentsStream(user.uid);
+    } else {
+      _appointmentsStream = Stream.value([]);
     }
-
-    return _firestore
-        .collection('appointments')
-        .where('professionalId', isEqualTo: user.uid)
-        .orderBy('dateTime', descending: true)
-        .snapshots()
-        .asyncMap((snapshot) async {
-          List<AppointmentModel> appointments = [];
-          for (var doc in snapshot.docs) {
-            final appointment = AppointmentModel.fromFirestore(doc);
-
-            // Buscar nome do paciente
-            final userDoc = await _firestore
-                .collection('users')
-                .doc(appointment.patientId)
-                .get();
-            if (userDoc.exists) {
-              final userModel = UserModel.fromFirestore(userDoc);
-              appointment.patientName = userModel.name;
-            }
-
-            appointments.add(appointment);
-          }
-          return appointments;
-        });
   }
 
   @override
@@ -60,17 +39,18 @@ class _VisualizarConsultasPageState extends State<VisualizarConsultasPage> {
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: AppTheme.brancoPrincipal,
         title: Row(
-          children: [
-            SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
-          ],
+          children: [Image.asset('assets/img/PlenoNexo.png', height: 40)],
         ),
         elevation: 0,
       ),
       body: StreamBuilder<List<AppointmentModel>>(
-        stream: _getAppointmentsStream(),
+        stream: _appointmentsStream,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text("Erro: ${snapshot.error}"));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('Nenhuma consulta agendada.'));

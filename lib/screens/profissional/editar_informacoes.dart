@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:plenonexo/models/professional_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/services/professional_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 
@@ -244,9 +243,7 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: AppTheme.brancoPrincipal,
         title: Row(
-          children: [
-            SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
-          ],
+          children: [Image.asset('assets/img/PlenoNexo.png', height: 40)],
         ),
         elevation: 0,
       ),

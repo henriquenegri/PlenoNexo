@@ -158,7 +158,7 @@ class _UserLoginPageState extends State<UserLoginPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const ForgotPasswordScreen(),
+                                    const ForgotPasswordScreen(userType: 'patient'),
                               ),
                             );
                           },

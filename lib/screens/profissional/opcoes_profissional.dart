@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/professional_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/screens/profissional/login/login_prof.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/services/professional_service.dart';
@@ -41,13 +40,6 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
         _isLoading = false;
       });
     }
-  }
-
-  String get _firstName {
-    if (_currentProfessional == null || _currentProfessional!.name.isEmpty) {
-      return 'Profissional';
-    }
-    return _currentProfessional!.name.split(' ').first;
   }
 
   Future<void> _deleteAccount() async {
@@ -140,7 +132,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
+          Image.asset('assets/img/PlenoNexo.png', height: 40),
 
           // Ícone de notificação
           Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),

@@ -129,7 +129,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
+                  Image.asset('assets/img/PlenoNexo.png', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,16 +337,30 @@ class _OptionsScreenState extends State<OptionsScreen> {
               break;
           }
         },
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.star_outline),
-            activeIcon: Icon(Icons.star),
-            label: 'Avaliações',
+            icon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                const Color(0xFF2A475E).withOpacity(0.6),
+                BlendMode.srcIn,
+              ),
+            ),
+            activeIcon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                const Color(0xFF2A475E),
+                BlendMode.srcIn,
+              ),
+            ),
+            label: 'Consultas',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

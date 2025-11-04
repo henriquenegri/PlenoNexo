@@ -154,7 +154,7 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const ForgotPasswordScreen(),
+                                    const ForgotPasswordScreen(userType: 'professional'),
                               ),
                             );
                           },

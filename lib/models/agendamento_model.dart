@@ -8,7 +8,8 @@ class AppointmentModel {
   final String status;
   final double consultationPrice;
   final String subject;
-  String? patientName; // Campo para armazenar o nome do paciente
+  String? patientName;
+  String? professionalName;
   final bool isReviewed;
 
   AppointmentModel({
@@ -21,6 +22,7 @@ class AppointmentModel {
     required this.subject,
     this.isReviewed = false,
     this.patientName,
+    this.professionalName,
   });
 
   factory AppointmentModel.fromFirestore(DocumentSnapshot doc) {
@@ -29,13 +31,12 @@ class AppointmentModel {
     // Converter a data do Firestore para o timezone local
     final timestamp = data['dateTime'] as Timestamp;
     final utcDateTime = timestamp.toDate();
-    final localDateTime = utcDateTime.toLocal();
 
     return AppointmentModel(
       id: doc.id,
       patientId: data['patientId'] ?? '',
       professionalId: data['professionalId'] ?? '',
-      dateTime: localDateTime,
+      dateTime: utcDateTime,
       status: data['status'] ?? 'scheduled',
       consultationPrice: (data['price'] as num?)?.toDouble() ?? 0.0,
       subject: data['subject'] ?? 'Consulta',
