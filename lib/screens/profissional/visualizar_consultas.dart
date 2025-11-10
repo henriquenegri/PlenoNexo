@@ -24,9 +24,12 @@ class _VisualizarConsultasPageState extends State<VisualizarConsultasPage> {
     super.initState();
     final user = _auth.currentUser;
     if (user != null) {
+      print('DEBUG: VisualizarConsultas - Usuário atual: ${user.uid}');
+      // Usar método simples que não depende de buscar dados externos
       _appointmentsStream = _appointmentService
-          .getProfessionalAppointmentsStream(user.uid);
+          .getProfessionalAppointmentsSimple(user.uid);
     } else {
+      print('DEBUG: VisualizarConsultas - Usuário não autenticado');
       _appointmentsStream = Stream.value([]);
     }
   }

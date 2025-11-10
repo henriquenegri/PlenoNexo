@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regras para usuários autenticados - TEMPORÁRIO PARA DEBUG
+    match /users/{userId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || 
+         request.auth.token.role == 'professional');
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Regras para consultas - PERMISSÕES TEMPORÁRIAS PARA DEBUG
+    match /appointments/{appointmentId} {
+      // TEMPORÁRIO: Permitir leitura para usuários autenticados
+      allow read: if request.auth != null;
+      
+      // Regras permanentes (comentadas por enquanto)
+      // allow read: if request.auth != null && 
+      //   (request.auth.uid == resource.data.patientId || 
+      //    request.auth.uid == resource.data.professionalId);
+      
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // Regras para avaliações
+    match /ratings/{ratingId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Regras para mensagens
+    match /messages/{messageId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Permitir leitura e escrita para profissionais na coleção 'professionals'
+    match /professionals/{professionalId} {
+      allow read, write: if request.auth != null && request.auth.uid == professionalId;
+    }
+  }
+}
