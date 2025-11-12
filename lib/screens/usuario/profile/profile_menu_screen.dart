@@ -287,9 +287,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             ),
                             const SizedBox(height: 16),
 
-                            // MUDANÇA no InkWell de Deletar Conta
                             InkWell(
-                              // MUDADO: chama o diálogo de exclusão
                               onTap: _showDeleteAccountDialog,
                               child: Container(
                                 width: double.infinity,

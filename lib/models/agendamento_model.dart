@@ -11,6 +11,7 @@ class AppointmentModel {
   String? patientName;
   String? professionalName;
   final bool isReviewed;
+  final String? cancellationReason;
 
   AppointmentModel({
     required this.id,
@@ -23,6 +24,7 @@ class AppointmentModel {
     this.isReviewed = false,
     this.patientName,
     this.professionalName,
+    this.cancellationReason,
   });
 
   factory AppointmentModel.fromFirestore(DocumentSnapshot doc) {
@@ -41,6 +43,7 @@ class AppointmentModel {
       consultationPrice: (data['price'] as num?)?.toDouble() ?? 0.0,
       subject: data['subject'] ?? 'Consulta',
       isReviewed: data['isReviewed'] ?? false,
+      cancellationReason: data['cancellationReason'],
     );
   }
 }

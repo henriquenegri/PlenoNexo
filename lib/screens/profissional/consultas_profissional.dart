@@ -258,18 +258,14 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
               itemBuilder: (BuildContext context) {
                 final menuItems = <PopupMenuEntry<String>>[];
                 
-                // Marcar como realizada (somente profissional)
-                if (appointment.status == 'scheduled' && isPast) {
-                  menuItems.add(
-                    const PopupMenuItem<String>(
-                      value: 'mark_completed',
-                      child: Text('Marcar como Realizada'),
-                    ),
-                  );
-                }
-                
                 // Cancelar consulta (profissional e paciente)
                 if (appointment.status == 'scheduled') {
+                  menuItems.add(
+                    const PopupMenuItem<String>(
+                      value: 'confirm',
+                      child: Text('Confirmar Consulta'),
+                    ),
+                  );
                   menuItems.add(
                     const PopupMenuItem<String>(
                       value: 'cancel',
@@ -292,7 +288,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
               },
             ),
           ),
-          if (appointment.status == 'cancelled' && appointment.consultationPrice == 0)
+          if (appointment.status == 'cancelled' && appointment.cancellationReason != null)
             Container(
               padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.only(top: 8),
@@ -309,7 +305,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Consulta cancelada',
+                      'Consulta cancelada: ${appointment.cancellationReason}',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.red[600],
@@ -420,6 +416,9 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
       case 'mark_completed':
         await _marcarComoRealizada(appointment);
         break;
+      case 'confirm':
+        await _tryConfirmAppointment(appointment);
+        break;
       case 'cancel':
         await _cancelarConsulta(appointment);
         break;
@@ -445,11 +444,49 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
     }
   }
 
+  Future<void> _tryConfirmAppointment(AppointmentModel appointment) async {
+    try {
+      final scheduled = appointment.dateTime;
+      final now = DateTime.now();
+      final isSameDay = now.year == scheduled.year &&
+          now.month == scheduled.month &&
+          now.day == scheduled.day;
+      final isSameHour = now.hour == scheduled.hour;
+
+      if (!isSameDay || !isSameHour) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ainda não é possível confirmar: a consulta só pode ser confirmada no dia e horário agendados.',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+        return;
+      }
+
+      await _appointmentService.updateAppointmentStatus(appointment.id, 'completed');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Consulta confirmada como realizada.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao confirmar consulta: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Future<void> _cancelarConsulta(AppointmentModel appointment) async {
     final motivo = await _mostrarDialogoCancelamento();
     if (motivo != null && motivo.isNotEmpty) {
       try {
-        await _appointmentService.cancelAppointment(appointment.id, motivo);
+        await _appointmentService.cancelAppointment(appointment.id, 'Cancelado pelo profissional: $motivo');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Consulta cancelada com sucesso!'),

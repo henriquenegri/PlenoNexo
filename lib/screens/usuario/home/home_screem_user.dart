@@ -269,9 +269,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         }
 
         final allAppointments = snapshot.data!;
-        final activeAppointments =
-            allAppointments.where((app) => app.status.toLowerCase() != 'cancelled').toList();
-        activeAppointments.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        // Mostrar também as consultas canceladas para que o usuário veja o histórico
+        final appointmentsToShow = List<AppointmentModel>.from(allAppointments)
+          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
         return Container(
           padding: const EdgeInsets.all(16.0),
@@ -299,7 +299,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   focusedDay: _focusedDay,
                   calendarFormat: CalendarFormat.month,
                   eventLoader: (day) {
-                    return activeAppointments.where((app) {
+                    // Incluir todas as consultas (inclusive canceladas) como marcadores
+                    return appointmentsToShow.where((app) {
                       return isSameDay(app.dateTime, day);
                     }).toList();
                   },
@@ -337,7 +338,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildSelectedDayAppointments(activeAppointments),
+              _buildSelectedDayAppointments(appointmentsToShow),
             ],
           ),
         );
@@ -409,6 +410,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
     return Column(
       children: selectedAppointments.map((app) {
+        final now = DateTime.now();
+        final canCancel = app.dateTime.isAfter(now.add(const Duration(hours: 24)));
+        final status = _getStatusText(app);
+
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.all(12),
@@ -416,27 +421,121 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             color: AppTheme.azul9.withOpacity(0.8),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.watch_later_outlined,
-                color: AppTheme.brancoPrincipal,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '${DateFormat('HH:mm').format(app.dateTime.toLocal())} - ${app.professionalName ?? 'Profissional'}',
-                  style: AppTheme.corpoTextoBranco.copyWith(
-                    fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  Icon(
+                    Icons.watch_later_outlined,
+                    color: AppTheme.brancoPrincipal,
+                    size: 20,
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '${DateFormat('HH:mm').format(app.dateTime.toLocal())} - ${app.professionalName ?? 'Profissional'}',
+                      style: AppTheme.corpoTextoBranco.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (canCancel && app.status == 'scheduled')
+                    IconButton(
+                      icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
+                      onPressed: () => _showCancelDialog(app),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Status: $status',
+                style: AppTheme.corpoTextoBranco.copyWith(
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
+              if (app.status == 'cancelled' && app.cancellationReason != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Motivo: ${app.cancellationReason}',
+                    style: AppTheme.corpoTextoBranco.copyWith(
+                      fontSize: 12,
+                      color: Colors.red[100],
+                    ),
+                  ),
+                ),
             ],
           ),
         );
       }).toList(),
     );
+  }
+
+  String _getStatusText(AppointmentModel appointment) {
+    final now = DateTime.now();
+    if (appointment.status == 'scheduled') {
+      if (appointment.dateTime.isBefore(now)) {
+        return 'Perdida';
+      } else {
+        return 'Agendada';
+      }
+    }
+    switch (appointment.status) {
+      case 'completed':
+        return 'Realizada';
+      case 'cancelled':
+        return 'Cancelada';
+      default:
+        return appointment.status;
+    }
+  }
+
+  void _showCancelDialog(AppointmentModel appointment) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Cancelar Consulta'),
+          content: const Text('Tem certeza que deseja cancelar esta consulta?'),
+          actions: [
+            TextButton(
+              child: const Text('Voltar'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Confirmar'),
+              onPressed: () {
+                _cancelAppointment(appointment.id);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _cancelAppointment(String appointmentId) async {
+    try {
+      await _appointmentService.cancelAppointment(appointmentId, 'Cancelado pelo paciente');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Consulta cancelada com sucesso.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao cancelar a consulta: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   BottomNavigationBar _buildBottomNavigation() {

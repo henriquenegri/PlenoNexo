@@ -62,21 +62,13 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
         user.uid,
       );
 
-      debugPrint(
-        'Total de agendamentos carregados para avaliação: ${allAppointments.length}',
-      );
-
-      // Mostrar todas as consultas não canceladas, mas apenas permitir avaliação das que já passaram
-      final activeAppointments = allAppointments
-          .where((app) => app.status.toLowerCase() != 'cancelled')
+      // Apenas consultas que foram completadas e ainda não foram avaliadas
+      final completedAppointments = allAppointments
+          .where((app) => app.status.toLowerCase() == 'completed' && !app.isReviewed)
           .toList();
 
-      debugPrint(
-        'Agendamentos ativos para avaliação: ${activeAppointments.length}',
-      );
-
       List<AppointmentWithProfessional> reviewsWithProfessionals = [];
-      for (var app in activeAppointments) {
+      for (var app in completedAppointments) {
         final prof = await _professionalService.getProfessionalById(
           app.professionalId,
         );
@@ -84,10 +76,6 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
           reviewsWithProfessionals.add(AppointmentWithProfessional(app, prof));
         }
       }
-
-      debugPrint(
-        'Consultas com profissionais carregados: ${reviewsWithProfessionals.length}',
-      );
 
       if (mounted) {
         setState(() {
@@ -122,9 +110,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
   Widget _buildReviewCard(AppointmentWithProfessional item) {
     final professional = item.professional;
     final appointment = item.appointment;
-    final now = DateTime.now();
-    final isPastAppointment = appointment.dateTime.isBefore(now);
-    final canReview = isPastAppointment && !appointment.isReviewed;
+    final canReview = appointment.status.toLowerCase() == 'completed' && !appointment.isReviewed;
 
     return Card(
       elevation: 4,
@@ -170,17 +156,13 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                     decoration: BoxDecoration(
                       color: appointment.isReviewed
                           ? const Color(0xFF10B981)
-                          : isPastAppointment
-                          ? const Color(0xFFFFD700)
-                          : const Color(0xFF6B7280),
+                          : const Color(0xFFFFD700),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       appointment.isReviewed
                           ? 'Avaliada'
-                          : isPastAppointment
-                          ? 'Pendente'
-                          : 'Futura',
+                          : 'Pendente',
                       style: GoogleFonts.poppins(
                         fontSize: 10,
                         color: Colors.white,
@@ -241,7 +223,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                     ),
                   ),
                 )
-              else if (appointment.isReviewed)
+              else
                 Align(
                   alignment: Alignment.centerRight,
                   child: Container(
@@ -273,45 +255,175 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                       ],
                     ),
                   ),
-                )
-              else
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF6B7280),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.schedule,
-                          size: 16,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Aguardando consulta',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                 ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildUpcomingAppointmentsSection() {
+    if (_currentUser == null) {
+      return Center(
+        child: Text(
+          'Faça login para ver suas consultas.',
+          style: GoogleFonts.poppins(color: Colors.white70),
+        ),
+      );
+    }
+
+    return StreamBuilder<List<AppointmentModel>>(
+      stream: _appointmentService.getPatientAppointmentsStream(_currentUser!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Text(
+              'Nenhuma consulta encontrada.',
+              style: GoogleFonts.poppins(color: Colors.white70),
+            ),
+          );
+        }
+
+        final now = DateTime.now();
+        final items = snapshot.data!
+            .where((a) => a.dateTime.isAfter(now.subtract(const Duration(days: 7))))
+            .toList()
+          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+
+        return Column(
+          children: items.map(_buildAppointmentTile).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildAppointmentTile(AppointmentModel appointment) {
+    final isCancelled = appointment.status.toLowerCase() == 'cancelled';
+    final isScheduled = appointment.status.toLowerCase() == 'scheduled';
+    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(appointment.dateTime);
+
+    return Card(
+      color: const Color(0xFF3B748F),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        appointment.professionalName ?? 'Profissional',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        dateStr,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isCancelled
+                        ? Colors.redAccent
+                        : isScheduled
+                            ? Colors.orangeAccent
+                            : Colors.blueAccent,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _statusText(appointment.status),
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (isScheduled)
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => _cancelAppointmentFromRating(appointment.id),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Cancelar consulta'),
+                ),
+              )
+            else if (isCancelled)
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  'Cancelada',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white70,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _statusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return 'Agendada';
+      case 'completed':
+        return 'Realizada';
+      case 'cancelled':
+        return 'Cancelada';
+      default:
+        return status;
+    }
+  }
+
+  Future<void> _cancelAppointmentFromRating(String appointmentId) async {
+    try {
+      await _appointmentService.cancelAppointment(
+        appointmentId,
+        'Cancelado pelo paciente',
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Consulta cancelada.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao cancelar consulta: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -410,38 +522,66 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                     Expanded(
                       child: _isLoading
                           ? const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
+                              child: CircularProgressIndicator(color: Colors.white),
                             )
-                          : _pendingReviews.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.check_circle_outline,
-                                    size: 64,
-                                    color: Colors.white.withOpacity(0.3),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Você não tem consultas agendadas.',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 16,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.builder(
+                          : ListView(
                               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                              itemCount: _pendingReviews.length,
-                              itemBuilder: (context, index) {
-                                final item = _pendingReviews[index];
-                                return _buildReviewCard(item);
-                              },
+                              children: [
+                                // Seção de avaliações pendentes
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Avaliações Pendentes',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                if (_pendingReviews.isEmpty)
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle_outline,
+                                          size: 48,
+                                          color: Colors.white.withOpacity(0.3),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Sem avaliações pendentes.',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 14,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  ..._pendingReviews.map(_buildReviewCard).toList(),
+
+                                const SizedBox(height: 24),
+
+                                // Seção de consultas para cancelamento
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Consultas Agendadas / Canceladas',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildUpcomingAppointmentsSection(),
+                              ],
                             ),
                     ),
                   ],

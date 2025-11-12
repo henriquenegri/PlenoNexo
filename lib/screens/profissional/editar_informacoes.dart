@@ -264,12 +264,12 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
         title: Row(
           children: [
             CircleAvatar(
-              radius: 18, // Raio um pouco menor para caber na AppBar
+              radius: 18,
               backgroundColor: AppTheme.secondaryGreen,
               child: Text(
                 _firstName.isNotEmpty ? _firstName.substring(0, 1) : 'P',
                 style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
-                  fontSize: 16, // Fonte menor para AppBar
+                  fontSize: 16,
                 ),
               ),
             ),
@@ -281,7 +281,7 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
                 Text(
                   "Olá, $_firstName",
                   style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
-                    fontSize: 16, // Fonte menor para AppBar
+                    fontSize: 16,
                   ),
                 ),
                 Text(
@@ -293,7 +293,6 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
           ],
         ),
         actions: [
-          // Adicionado ícone de notificação para ficar igual
           IconButton(
             icon: Icon(
               Icons.notifications,
@@ -308,7 +307,6 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
         ],
       ),
 
-      // **** FIM DA MODIFICAÇÃO DA APPBAR ****
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentProfessional == null

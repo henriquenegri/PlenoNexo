@@ -314,7 +314,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
           0xFF2A475E,
         ).withAlpha((255 * 0.6).round()),
         selectedItemColor: const Color(0xFF2A475E),
-        currentIndex: 2, // Options screen is the profile tab
+        currentIndex: 2,
         onTap: (index) {
           switch (index) {
             case 0:

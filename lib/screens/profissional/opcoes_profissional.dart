@@ -10,6 +10,7 @@ import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'dashboards_detalhados.dart';
 import 'perfil_profissional.dart';
+import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 
 class OpcoesProfissional extends StatefulWidget {
   const OpcoesProfissional({Key? key}) : super(key: key);
@@ -302,8 +303,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
                         if (mounted) {
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const ProfessionalLoginPage(),
+                              builder: (context) => const WelcomeScreen(),
                             ),
                             (Route<dynamic> route) => false,
                           );

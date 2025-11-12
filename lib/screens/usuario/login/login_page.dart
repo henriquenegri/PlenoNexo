@@ -5,6 +5,7 @@ import 'package:plenonexo/screens/usuario/cadastro/cadastrar_usuario.dart';
 import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
+import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 
 class UserLoginPage extends StatefulWidget {
   const UserLoginPage({super.key});
@@ -90,7 +91,15 @@ class _UserLoginPageState extends State<UserLoginPage> {
                       Icons.arrow_back,
                       color: AppTheme.pretoPrincipal,
                     ),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WelcomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    },
                   ),
                 ),
                 SvgPicture.asset('assets/img/NeuroConecta.svg', height: 200),
