@@ -400,20 +400,7 @@ class _SelectProfessionalScreenState extends State<SelectProfessionalScreen> {
                     ],
                   ),
                   const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.azul13.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.notifications_outlined,
-                        color: AppTheme.brancoPrincipal,
-                        size: 28,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
             ),

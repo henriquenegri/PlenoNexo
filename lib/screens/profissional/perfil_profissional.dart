@@ -131,8 +131,8 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
             ],
           ),
 
-          // Ícone de notificação
-          Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),
+          // Ícone removido
+          const SizedBox.shrink(),
         ],
       ),
     );

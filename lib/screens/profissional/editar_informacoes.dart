@@ -292,18 +292,8 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.notifications,
-              color: AppTheme.brancoPrincipal,
-              size: 24,
-            ),
-            onPressed: () {
-              // Adicione a ação de notificação se desejar
-            },
-          ),
-          const SizedBox(width: 8),
+        actions: const [
+          SizedBox(width: 8),
         ],
       ),
 

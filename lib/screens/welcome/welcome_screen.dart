@@ -20,7 +20,7 @@ class WelcomeScreen extends StatelessWidget {
               Image.asset('assets/img/PlenoNexo.png', height: 200),
               const SizedBox(height: 8),
               Text(
-                'PlenoNexo',
+                'AURA',
                 textAlign: TextAlign.center,
                 style: AppTheme.tituloPrincipalPreto,
               ),

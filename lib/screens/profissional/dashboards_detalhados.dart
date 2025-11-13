@@ -240,8 +240,8 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
             ],
           ),
 
-          // Ícone de notificação
-          Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),
+          // Ícone removido
+          const SizedBox.shrink(),
         ],
       ),
     );

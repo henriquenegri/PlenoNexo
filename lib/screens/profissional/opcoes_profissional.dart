@@ -175,8 +175,8 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
             ],
           ),
 
-          // Ícone de notificação
-          Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),
+          // Ícone removido
+          const SizedBox.shrink(),
         ],
       ),
     );

@@ -104,7 +104,7 @@ class _UserLoginPageState extends State<UserLoginPage> {
                 ),
                 SvgPicture.asset('assets/img/NeuroConecta.svg', height: 200),
                 const SizedBox(height: 8),
-                Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
+                Text('AURA', style: AppTheme.tituloPrincipalPreto),
                 const SizedBox(height: 25),
                 Container(
                   padding: const EdgeInsets.symmetric(

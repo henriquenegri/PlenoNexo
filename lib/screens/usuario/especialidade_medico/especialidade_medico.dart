@@ -140,20 +140,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                     ],
                   ),
                   const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.azul13.withAlpha((255 * 0.9).round()),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.notifications_outlined,
-                        color: AppTheme.brancoPrincipal,
-                        size: 28,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
             ),

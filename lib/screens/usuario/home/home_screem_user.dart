@@ -113,20 +113,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           ],
         ),
         const Spacer(),
-        Container(
-          decoration: BoxDecoration(
-            color: AppTheme.azul13.withOpacity(0.9),
-            shape: BoxShape.circle,
-          ),
-          child: IconButton(
-            icon: Icon(
-              Icons.notifications_outlined,
-              color: AppTheme.brancoPrincipal,
-              size: 28,
-            ),
-            onPressed: () {},
-          ),
-        ),
+        const SizedBox.shrink(),
       ],
     );
   }
@@ -298,6 +285,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   lastDay: DateTime.utc(DateTime.now().year + 1),
                   focusedDay: _focusedDay,
                   calendarFormat: CalendarFormat.month,
+                  rowHeight: 42,
                   eventLoader: (day) {
                     // Incluir todas as consultas (inclusive canceladas) como marcadores
                     return appointmentsToShow.where((app) {
@@ -371,6 +359,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               lastDay: DateTime.utc(DateTime.now().year + 1),
               focusedDay: _focusedDay,
               calendarFormat: CalendarFormat.month,
+              rowHeight: 42,
               headerStyle: HeaderStyle(
                 titleCentered: true,
                 formatButtonVisible: false,
@@ -438,6 +427,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       style: AppTheme.corpoTextoBranco.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
+                      softWrap: false,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (canCancel && app.status == 'scheduled')

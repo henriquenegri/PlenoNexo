@@ -271,7 +271,7 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                 SvgPicture.asset('assets/img/NeuroConecta.svg', height: 100),
                 const SizedBox(height: 8),
                 Text(
-                  'PlenoNexo',
+                  'AURA',
                   style: AppTheme.tituloPrincipal.copyWith(
                     color: AppTheme.pretoPrincipal,
                   ),

@@ -17,7 +17,7 @@ class PlenoNexoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PlenoNexo',
+      title: 'AURA',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
 

@@ -238,33 +238,18 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
               ),
             ],
           ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.bug_report, color: Colors.grey, size: 24),
-                onPressed: () {
-                  print('=== BOTÃO DEBUG PRESSIONADO ===');
-                  DebugFirestore.debugProfessionalAppointments();
-                },
-              ),
-              Icon(
-                Icons.notifications_none,
-                color: AppTheme.pretoPrincipal,
-                size: 28,
-              ),
-            ],
-          ),
+          const SizedBox.shrink(),
+          const SizedBox.shrink(),
         ],
       ),
     );
   }
 
   Widget _buildQuickAccessSection() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildQuickAccessCard(
+    return Row(
+      children: [
+        Expanded(
+          child: _buildQuickAccessCard(
             icon: Icons.show_chart,
             text: "Dashboards",
             onTap: () {
@@ -277,14 +262,18 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
               );
             },
           ),
-          const SizedBox(width: 12),
-          _buildQuickAccessCard(
-              icon: Icons.event_note,
-              text: "Visualizar Consultas",
-              onTap: _navigateToConsultas,
-            ),
-          const SizedBox(width: 12),
-          _buildQuickAccessCard(
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildQuickAccessCard(
+            icon: Icons.event_note,
+            text: "Visualizar Consultas",
+            onTap: _navigateToConsultas,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildQuickAccessCard(
             icon: Icons.person,
             text: "Perfil",
             onTap: () {
@@ -296,8 +285,8 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
               );
             },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -306,15 +295,14 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     required String text,
     required VoidCallback onTap,
   }) {
-    final cardSize = (MediaQuery.of(context).size.width - 32 - 32) / 3;
     return GestureDetector(
       onTap: onTap,
       child: Card(
         color: AppTheme.primaryGreen,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: SizedBox(
-          width: cardSize,
-          height: cardSize,
+          width: double.infinity,
+          height: 110,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

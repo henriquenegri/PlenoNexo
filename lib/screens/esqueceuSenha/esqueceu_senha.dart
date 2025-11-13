@@ -105,7 +105,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ),
                   Image.asset('assets/img/PlenoNexo.png', height: 200),
                   const SizedBox(height: 8),
-                  Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
+                  Text('AURA', style: AppTheme.tituloPrincipalPreto),
                   const SizedBox(height: 40),
                   Container(
                     padding: const EdgeInsets.symmetric(

@@ -11,33 +11,16 @@ class ReviewService {
     required String reviewText,
   }) async {
     final professionalRef = _firestore.collection('users').doc(professionalId);
-    final reviewRef = _firestore.collection('reviews').doc();
+    // Ajuste: usar a coleção 'ratings' conforme regras do Firestore
+    final reviewRef = _firestore.collection('ratings').doc();
     final appointmentRef = _firestore
         .collection('appointments')
         .doc(appointmentId);
 
+    // Para evitar erros de permissão, não atualizamos o documento do profissional aqui.
+    // Em vez disso, registramos a avaliação em 'ratings' e marcamos o agendamento como avaliado.
     return _firestore.runTransaction((transaction) async {
-      final professionalDoc = await transaction.get(professionalRef);
-      if (!professionalDoc.exists) {
-        throw Exception("Profissional não encontrado!");
-      }
-
-      // 2. Calcula a nova nota média
-      final oldRatingTotal = professionalDoc.data()?['ratingTotal'] ?? 0.0;
-      final oldRatingCount = professionalDoc.data()?['ratingCount'] ?? 0;
-
-      final newRatingTotal = oldRatingTotal + rating;
-      final newRatingCount = oldRatingCount + 1;
-      final newAverageRating = newRatingTotal / newRatingCount;
-
-      // 3. Atualiza os dados do profissional
-      transaction.update(professionalRef, {
-        'rating': newAverageRating,
-        'ratingTotal': newRatingTotal,
-        'ratingCount': newRatingCount,
-      });
-
-      // 4. Cria o documento da avaliação
+      // 1. Cria o documento da avaliação
       transaction.set(reviewRef, {
         'professionalId': professionalId,
         'patientId': patientId,
@@ -46,8 +29,7 @@ class ReviewService {
         'reviewText': reviewText,
         'createdAt': FieldValue.serverTimestamp(),
       });
-
-      // 5. Marca o agendamento como avaliado para não poder avaliar de novo
+      // 2. Marca o agendamento como avaliado para não poder avaliar de novo
       transaction.update(appointmentRef, {'isReviewed': true});
     });
   }
