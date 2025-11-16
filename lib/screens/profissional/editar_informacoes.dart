@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+// ADICIONADO IMPORT PARA DATA
+import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:plenonexo/models/professional_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/services/professional_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 
 class EditarInformacoesPage extends StatefulWidget {
-  const EditarInformacoesPage({super.key});
+  final String nomeProfissional;
+
+  const EditarInformacoesPage({super.key, this.nomeProfissional = "Dr. Silva"});
 
   @override
   State<EditarInformacoesPage> createState() => _EditarInformacoesPageState();
@@ -29,6 +32,13 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
   final _professionalIdController = TextEditingController();
   final _accessibleLocationController = TextEditingController();
   final _outrasEspecialidadesController = TextEditingController();
+
+  String get _firstName {
+    if (widget.nomeProfissional.isEmpty) {
+      return 'Profissional';
+    }
+    return widget.nomeProfissional.split(' ').first;
+  }
 
   // Máscaras
   final _phoneFormatter = MaskTextInputFormatter(
@@ -238,18 +248,55 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
 
   @override
   Widget build(BuildContext context) {
+    // **** VARIÁVEL DE DATA ADICIONADA ****
+    final today = DateTime.now();
+    final formattedDate = DateFormat('dd/MM/yyyy').format(today);
+
     return Scaffold(
       backgroundColor: AppTheme.background,
+
+      // **** APPBAR MODIFICADA ****
       appBar: AppBar(
         backgroundColor: AppTheme.primaryGreen,
         foregroundColor: AppTheme.brancoPrincipal,
+        elevation: 0,
+        // Título modificado para incluir o avatar e o nome
         title: Row(
           children: [
-            SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppTheme.secondaryGreen,
+              child: Text(
+                _firstName.isNotEmpty ? _firstName.substring(0, 1) : 'P',
+                style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Olá, $_firstName",
+                  style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  formattedDate,
+                  style: AppTheme.corpoTextoBranco.copyWith(fontSize: 12),
+                ),
+              ],
+            ),
           ],
         ),
-        elevation: 0,
+        actions: const [
+          SizedBox(width: 8),
+        ],
       ),
+
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _currentProfessional == null
@@ -366,6 +413,9 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
     );
   }
 
+  // ... (O resto dos seus widgets _buildSectionTitle, _buildTextField, etc. continua aqui sem alterações) ...
+  // (Copiei todos abaixo para garantir que o ficheiro está completo)
+
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -402,6 +452,13 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
+            // Permite que campos não obrigatórios fiquem vazios
+            if (label == 'Bairro' ||
+                label == 'Rua' ||
+                label == 'Número' ||
+                label == 'Especifique outras especialidades') {
+              return null;
+            }
             return 'Este campo é obrigatório';
           }
           return null;

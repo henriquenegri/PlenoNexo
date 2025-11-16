@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regras para usuários autenticados - TEMPORÁRIO PARA DEBUG
+    match /users/{userId} {
+      // Permitir leitura de perfis profissionais por qualquer usuário autenticado
+      // e leitura do próprio perfil para qualquer usuário
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId ||
+         resource.data.role == 'professional');
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Regras para consultas
+    match /appointments/{appointmentId} {
+      // Leitura: apenas paciente ou profissional envolvidos
+      allow read: if request.auth != null &&
+        (request.auth.uid == resource.data.patientId ||
+         request.auth.uid == resource.data.professionalId);
+
+      // Criação: qualquer usuário autenticado
+      allow create: if request.auth != null;
+
+      // Atualização: paciente pode marcar isReviewed, ambos podem atualizar status
+      allow update: if request.auth != null && (
+        (
+          request.auth.uid == resource.data.patientId &&
+          request.resource.data.diff(resource.data).changedKeys().hasOnly(['isReviewed'])
+        ) || (
+          request.auth.uid == resource.data.patientId || request.auth.uid == resource.data.professionalId
+        )
+      );
+
+      // Exclusão: apenas envolvidos
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.patientId || request.auth.uid == resource.data.professionalId
+      );
+    }
+    
+    // Regras para avaliações
+    match /ratings/{ratingId} {
+      // Leitura: autenticados
+      allow read: if request.auth != null;
+      // Criação: somente o paciente da avaliação
+      allow create: if request.auth != null &&
+        request.auth.uid == request.resource.data.patientId &&
+        request.resource.data.keys().hasAll(['patientId','professionalId','appointmentId','rating','reviewText']);
+      // Imutável: sem update/delete
+      allow update, delete: if false;
+    }
+    
+    // Regras para mensagens
+    match /messages/{messageId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Permitir leitura e escrita para profissionais na coleção 'professionals'
+    match /professionals/{professionalId} {
+      allow read, write: if request.auth != null && request.auth.uid == professionalId;
+    }
+  }
+}

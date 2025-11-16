@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:plenonexo/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:plenonexo/services/appointment_service.dart';
+import 'package:plenonexo/services/professional_service.dart'; // Corrigido
 import '../../utils/app_theme.dart';
 import 'dashboards_detalhados.dart';
 import 'opcoes_profissional.dart';
 import 'editar_informacoes.dart';
-import 'visualizar_consultas.dart';
+import 'consultas_profissional.dart';
+import 'package:plenonexo/debug_firestore.dart';
 
 class DashboardProfissional extends StatefulWidget {
   const DashboardProfissional({super.key});
@@ -23,27 +26,52 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
   int _selectedIndex = 0; // Home é o primeiro item
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AppointmentService _appointmentService = AppointmentService();
+  final ProfessionalService _professionalService = ProfessionalService(); // Corrigido
+
   late Stream<List<AppointmentModel>> _todayAppointmentsStream;
-  late Stream<List<BarChartGroupData>> _chartDataStream;
+  late Stream<List<AppointmentModel>> _chartDataStream;
   String _professionalName = "...";
 
   @override
   void initState() {
     super.initState();
+    print('=== DEBUG initState ===');
     _loadProfessionalName();
-    _chartDataStream = _getChartData();
-    _todayAppointmentsStream = _getTodayAppointmentsStream();
+    final user = _auth.currentUser;
+    print('DEBUG: Usuário atual no initState: ${user?.uid}');
+    if (user != null) {
+      print('DEBUG: Configurando stream com UID: ${user.uid}');
+      // Usar método simples que não depende de queries complexas
+      _todayAppointmentsStream = _appointmentService
+          .getProfessionalAppointmentsSimple(user.uid)
+          .map((appointments) {
+            // Filtrar apenas consultas de hoje
+            final now = DateTime.now();
+            return appointments.where((appointment) {
+              final appointmentDate = appointment.dateTime;
+              return appointmentDate.year == now.year && 
+                     appointmentDate.month == now.month && 
+                     appointmentDate.day == now.day;
+            }).toList();
+          });
+      // Usar método seguro para gráficos com fallback
+      _chartDataStream = _getSafeChartDataStream(user.uid);
+      print('Streams inicializadas com sucesso');
+    } else {
+      print('DEBUG: Usuário é null, streams vazios');
+      _todayAppointmentsStream = Stream.value([]);
+      _chartDataStream = Stream.value([]);
+    }
   }
 
   void _loadProfessionalName() async {
-    final user = _auth.currentUser;
-    if (user != null) {
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      if (mounted) {
-        setState(() {
-          _professionalName = userDoc.data()?['name'] ?? 'Profissional';
-        });
-      }
+    // Corrigido para usar ProfessionalService
+    final professional = await _professionalService.getCurrentProfessionalData();
+    if (mounted && professional != null) {
+      setState(() {
+        _professionalName = professional.name;
+      });
     }
   }
 
@@ -54,64 +82,58 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     return _professionalName.split(' ').first;
   }
 
-  Stream<List<BarChartGroupData>> _getChartData() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return Stream.value([]);
+  List<BarChartGroupData> _generateChartData(List<AppointmentModel> appointments) {
+    print('=== DEBUG _generateChartData ===');
+    print('Total de consultas recebidas: ${appointments.length}');
+    
+    if (appointments.isEmpty) {
+      print('Lista vazia, retornando gráfico vazio');
+      return _generateEmptyChartData();
     }
 
-    return _firestore
-        .collection('appointments') // CORREÇÃO: Usar a coleção 'appointments'
-        .where('professionalId', isEqualTo: user.uid)
-        .where(
-          'dateTime',
-          isGreaterThanOrEqualTo: DateTime.now().subtract(
-            const Duration(days: 6),
+    Map<int, int> dailyCounts = {};
+    for (var appointment in appointments) {
+      final day = appointment.dateTime.weekday;
+      dailyCounts[day] = (dailyCounts[day] ?? 0) + 1;
+      print('Consulta "${appointment.subject}" no weekday $day');
+    }
+
+    print('Contagem por weekday: $dailyCounts');
+
+    final List<Color> barColors = [
+      AppTheme.chartPurple,
+      AppTheme.chartLightBlue,
+      AppTheme.chartGrayBlue,
+      AppTheme.chartLightGreen,
+      AppTheme.chartDarkGray,
+      AppTheme.chartPurple,
+      AppTheme.chartLightBlue,
+    ];
+
+    final result = List.generate(6, (index) {
+      final day = DateTime.now().subtract(Duration(days: 5 - index));
+      final count = dailyCounts[day.weekday]?.toDouble() ?? 0.0;
+      print('Barra $index: dia ${day.weekday} (${DateFormat('dd/MM').format(day)}) -> $count consultas');
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: count,
+            color: barColors[index % barColors.length],
+            width: 15,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(4),
+              topRight: Radius.circular(4),
+            ),
           ),
-        )
-        .snapshots()
-        .map((snapshot) {
-          if (snapshot.docs.isEmpty) {
-            return _generateEmptyChartData();
-          }
-
-          Map<int, int> dailyCounts = {};
-          for (var doc in snapshot.docs) {
-            final appointment = doc.data();
-            final date = (appointment['dateTime'] as Timestamp).toDate();
-            final day = date.weekday;
-            dailyCounts[day] = (dailyCounts[day] ?? 0) + 1;
-          }
-
-          final List<Color> barColors = [
-            AppTheme.chartPurple,
-            AppTheme.chartLightBlue,
-            AppTheme.chartGrayBlue,
-            AppTheme.chartLightGreen,
-            AppTheme.chartDarkGray,
-            AppTheme.chartPurple,
-            AppTheme.chartLightBlue,
-          ];
-
-          return List.generate(6, (index) {
-            final day = DateTime.now().subtract(Duration(days: 5 - index));
-            final count = dailyCounts[day.weekday]?.toDouble() ?? 0.0;
-            return BarChartGroupData(
-              x: index,
-              barRods: [
-                BarChartRodData(
-                  toY: count,
-                  color: barColors[index % barColors.length],
-                  width: 15,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-              ],
-            );
-          });
-        });
+        ],
+      );
+    });
+    
+    print('Barras geradas: ${result.length}');
+    print('=================================');
+    
+    return result;
   }
 
   List<BarChartGroupData> _generateEmptyChartData() {
@@ -131,44 +153,6 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
         ],
       );
     });
-  }
-
-  Stream<List<AppointmentModel>> _getTodayAppointmentsStream() {
-    final user = _auth.currentUser;
-    if (user == null) {
-      return Stream.value([]);
-    }
-
-    final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
-    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
-    return _firestore
-        .collection('appointments')
-        .where('professionalId', isEqualTo: user.uid)
-        .where(
-          'dateTime',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-        )
-        .where('dateTime', isLessThanOrEqualTo: Timestamp.fromDate(endOfDay))
-        .orderBy('dateTime')
-        .snapshots()
-        .asyncMap((snapshot) async {
-          List<AppointmentModel> appointments = [];
-          for (var doc in snapshot.docs) {
-            final appointment = AppointmentModel.fromFirestore(doc);
-            final userDoc = await _firestore
-                .collection('users')
-                .doc(appointment.patientId)
-                .get();
-            if (userDoc.exists) {
-              final userModel = UserModel.fromFirestore(userDoc);
-              appointment.patientName = userModel.name;
-            }
-            appointments.add(appointment);
-          }
-          return appointments;
-        });
   }
 
   @override
@@ -255,11 +239,8 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
               ),
             ],
           ),
-          Icon(
-            Icons.notifications_none,
-            color: AppTheme.pretoPrincipal,
-            size: 28,
-          ),
+          const SizedBox.shrink(),
+          const SizedBox.shrink(),
         ],
       ),
     );
@@ -267,44 +248,44 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
 
   Widget _buildQuickAccessSection() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _buildQuickAccessCard(
-          icon: Icons.show_chart,
-          text: "Dashboards",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    DashboardsDetalhados(nomeProfissional: _professionalName),
-              ),
-            );
-          },
+        Expanded(
+          child: _buildQuickAccessCard(
+            icon: Icons.show_chart,
+            text: "Dashboards",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DashboardsDetalhados(nomeProfissional: _professionalName),
+                ),
+              );
+            },
+          ),
         ),
-        _buildQuickAccessCard(
-          icon: Icons.description,
-          text: "Visualizar Consultas",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const VisualizarConsultasPage(),
-              ),
-            );
-          },
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildQuickAccessCard(
+            icon: Icons.event_note,
+            text: "Visualizar Consultas",
+            onTap: _navigateToConsultas,
+          ),
         ),
-        _buildQuickAccessCard(
-          icon: Icons.edit,
-          text: "Editar Informações",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EditarInformacoesPage(),
-              ),
-            );
-          },
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildQuickAccessCard(
+            icon: Icons.person,
+            text: "Perfil",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OpcoesProfissional(),
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -315,15 +296,14 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     required String text,
     required VoidCallback onTap,
   }) {
-    final cardSize = (MediaQuery.of(context).size.width - 32 - 32) / 3;
     return GestureDetector(
       onTap: onTap,
       child: Card(
         color: AppTheme.primaryGreen,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: SizedBox(
-          width: cardSize,
-          height: cardSize,
+          width: double.infinity,
+          height: 110,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -349,13 +329,31 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Consultas de Hoje',
-          style: GoogleFonts.montserrat(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppTheme.pretoPrincipal,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Consultas de Hoje',
+              style: GoogleFonts.montserrat(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.pretoPrincipal,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.refresh, color: Colors.grey),
+              onPressed: () {
+                print('DEBUG: Botão de refresh pressionado');
+                final user = _auth.currentUser;
+                if (user != null) {
+                  setState(() {
+                    _todayAppointmentsStream = _appointmentService
+                        .getTodayProfessionalAppointmentsStream(user.uid);
+                  });
+                }
+              },
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Container(
@@ -374,7 +372,23 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
           child: StreamBuilder<List<AppointmentModel>>(
             stream: _todayAppointmentsStream,
             builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+               // Debug log
+               print('=== DEBUG CONSULTAS HOJE ===');
+               print('Connection State: ${snapshot.connectionState}');
+               print('Has Data: ${snapshot.hasData}');
+               print('Has Error: ${snapshot.hasError}');
+               if (snapshot.hasError) {
+                 print('Error: ${snapshot.error}');
+               }
+               if (snapshot.hasData) {
+                 print('Data Length: ${snapshot.data?.length ?? 0}');
+                 if (snapshot.data != null && snapshot.data!.isNotEmpty) {
+                   print('First appointment: ${snapshot.data!.first.subject} at ${snapshot.data!.first.dateTime}');
+                 }
+               }
+               print('===========================');
+ 
+                if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Center(child: CircularProgressIndicator()),
@@ -401,22 +415,44 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                     const Divider(height: 1, indent: 16, endIndent: 16),
                 itemBuilder: (context, index) {
                   final appointment = appointments[index];
+                  final now = DateTime.now();
+                  final isPast = appointment.dateTime.isBefore(now);
+                  final status = _getAppointmentStatus(appointment, isPast);
+                  final statusColor = _getStatusColor(appointment.status, isPast);
+                  final statusIcon = _getStatusIcon(appointment.status, isPast);
+                  
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: AppTheme.primaryGreen.withOpacity(0.1),
-                      child: Text(
-                        DateFormat('HH:mm').format(appointment.dateTime),
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.primaryGreen,
-                        ),
+                      backgroundColor: statusColor.withOpacity(0.1),
+                      child: Icon(
+                        statusIcon,
+                        color: statusColor,
+                        size: 20,
                       ),
                     ),
                     title: Text(
                       appointment.patientName ?? 'Paciente não identificado',
                       style: GoogleFonts.montserrat(
                         fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      BrazilTime.formatTime(appointment.dateTime),
+                      style: GoogleFonts.poppins(fontSize: 14),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        _translateStatus(status),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: statusColor,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   );
@@ -454,9 +490,24 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
             const SizedBox(height: 24),
             SizedBox(
               height: 200,
-              child: StreamBuilder<List<BarChartGroupData>>(
+              child: StreamBuilder<List<AppointmentModel>>(
                 stream: _chartDataStream,
                 builder: (context, snapshot) {
+                  print('=== DEBUG GRÁFICO ===');
+                  print('Connection State: ${snapshot.connectionState}');
+                  print('Has Data: ${snapshot.hasData}');
+                  print('Has Error: ${snapshot.hasError}');
+                  if (snapshot.hasError) {
+                    print('Error: ${snapshot.error}');
+                  }
+                  if (snapshot.hasData) {
+                    print('Data Length: ${snapshot.data?.length ?? 0}');
+                    if (snapshot.data != null && snapshot.data!.isNotEmpty) {
+                      print('Primeira consulta: ${snapshot.data!.first.subject}');
+                    }
+                  }
+                  print('===========================');
+                  
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
                       child: CircularProgressIndicator(color: Colors.white),
@@ -464,12 +515,36 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                   }
                   if (!snapshot.hasData || snapshot.data!.isEmpty) {
                     return Center(
-                      child: Text(
-                        'Sem dados de consulta para os últimos 6 dias.',
-                        style: GoogleFonts.roboto(color: Colors.white70),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.bar_chart,
+                            color: Colors.white.withOpacity(0.5),
+                            size: 48,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Sem dados de consulta para os últimos 6 dias.',
+                            style: GoogleFonts.roboto(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'As consultas aparecerão aqui conforme forem agendadas.',
+                            style: GoogleFonts.roboto(
+                              color: Colors.white.withOpacity(0.6),
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     );
                   }
+
+                  final chartData = _generateChartData(snapshot.data!);
+                  print('DEBUG: Gráfico gerado com ${chartData.length} barras');
 
                   return BarChart(
                     BarChartData(
@@ -534,7 +609,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                         drawVerticalLine: false,
                       ),
                       borderData: FlBorderData(show: false),
-                      barGroups: snapshot.data!,
+                      barGroups: chartData,
                     ),
                   );
                 },
@@ -544,6 +619,151 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
         ),
       ),
     );
+  }
+
+  void _refreshTodayAppointments() {
+    print('DEBUG: Refreshing today appointments');
+    final user = _auth.currentUser;
+    if (user != null) {
+      setState(() {
+        _todayAppointmentsStream = _appointmentService
+            .getTodayProfessionalAppointmentsStreamSafe(user.uid);
+      });
+    }
+  }
+
+  void _navigateToConsultas() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ConsultasProfissional(),
+      ),
+    );
+  }
+
+  String _getAppointmentStatus(AppointmentModel appointment, bool isPast) {
+    if (appointment.status == 'scheduled') {
+      if (isPast) {
+        return 'missed'; // Perdido
+      } else {
+        return 'scheduled'; // Agendada
+      }
+    }
+    return appointment.status;
+  }
+
+  Color _getStatusColor(String status, bool isPast) {
+    if (status == 'scheduled' && isPast) {
+      return Colors.orange; // Perdido
+    }
+    
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return Colors.blue;
+      case 'completed':
+        return Colors.green;
+      case 'cancelled':
+        return Colors.red;
+      case 'missed':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getStatusIcon(String status, bool isPast) {
+    if (status == 'scheduled' && isPast) {
+      return Icons.event_busy;
+    }
+    
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return Icons.event_available;
+      case 'completed':
+        return Icons.check_circle;
+      case 'cancelled':
+        return Icons.cancel;
+      case 'missed':
+        return Icons.event_busy;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  String _translateStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'scheduled':
+        return 'Agendada';
+      case 'completed':
+        return 'Realizada';
+      case 'cancelled':
+        return 'Cancelada';
+      case 'missed':
+        return 'Perdida';
+      default:
+        return status;
+    }
+  }
+
+  /// Método seguro para obter dados do gráfico com fallback
+  Stream<List<AppointmentModel>> _getSafeChartDataStream(String professionalId) {
+    print('=== DEBUG _getSafeChartDataStream ===');
+    print('Professional ID: $professionalId');
+    
+    return _appointmentService.getAppointmentsForChartStream(professionalId)
+        .handleError((error) {
+          print('DEBUG: Erro no stream original do gráfico: $error');
+          print('DEBUG: Tentando método alternativo');
+          // Se falhar, retornar stream vazio para não quebrar o gráfico
+          return Stream.value([]);
+        })
+        .asyncMap((appointments) async {
+          print('DEBUG: Processando ${appointments.length} consultas para gráfico');
+          
+          // Se não houver consultas, tentar método alternativo
+          if (appointments.isEmpty) {
+            print('DEBUG: Nenhuma consulta encontrada, tentando método alternativo');
+            try {
+              final fallbackAppointments = await _getChartDataFallback(professionalId);
+              print('DEBUG: Método alternativo retornou ${fallbackAppointments.length} consultas');
+              return fallbackAppointments;
+            } catch (e) {
+              print('DEBUG: Método alternativo também falhou: $e');
+              return appointments; // Retorna lista vazia
+            }
+          }
+          
+          return appointments;
+        });
+  }
+
+  /// Método de fallback para obter dados do gráfico
+  Future<List<AppointmentModel>> _getChartDataFallback(String professionalId) async {
+    print('=== DEBUG _getChartDataFallback ===');
+    print('Professional ID: $professionalId');
+    
+    try {
+      // Buscar consultas dos últimos 7 dias sem restrições complexas
+      final snapshot = await _firestore
+          .collection('appointments')
+          .where('professionalId', isEqualTo: professionalId)
+          .get();
+      
+      print('DEBUG: Fallback - encontradas ${snapshot.docs.length} consultas no total');
+      
+      // Filtrar localmente por data
+      final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 6));
+      final appointments = snapshot.docs
+          .map((doc) => AppointmentModel.fromFirestore(doc))
+          .where((appointment) => appointment.dateTime.isAfter(sevenDaysAgo))
+          .toList();
+      
+      print('DEBUG: Fallback - ${appointments.length} consultas nos últimos 7 dias');
+      return appointments;
+    } catch (e) {
+      print('DEBUG: Fallback também falhou: $e');
+      return [];
+    }
   }
 
   Widget _buildBottomNavigation() {

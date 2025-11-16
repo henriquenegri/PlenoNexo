@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/professional_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/services/professional_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
@@ -21,6 +20,7 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
   final ProfessionalService _professionalService = ProfessionalService();
   ProfessionalModel? _currentProfessional;
   bool _isLoading = true;
+  String _professionalName = '...';
 
   @override
   void initState() {
@@ -34,16 +34,17 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
     if (mounted) {
       setState(() {
         _currentProfessional = professional;
+        _professionalName = professional?.name ?? 'Profissional';
         _isLoading = false;
       });
     }
   }
 
   String get _firstName {
-    if (_currentProfessional == null || _currentProfessional!.name.isEmpty) {
+    if (_professionalName.isEmpty || _professionalName == "...") {
       return 'Profissional';
     }
-    return _currentProfessional!.name.split(' ').first;
+    return _professionalName.split(' ').first;
   }
 
   @override
@@ -98,10 +99,40 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Avatar e nome
-          SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppTheme.secondaryGreen,
+                child: Text(
+                  _firstName.isNotEmpty ? _firstName.substring(0, 1) : 'P',
+                  style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Olá, $_firstName",
+                    style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                      fontSize: 18,
+                    ),
+                  ),
+                  Text(
+                    formattedDate,
+                    style: AppTheme.corpoTextoBranco.copyWith(fontSize: 14),
+                  ),
+                ],
+              ),
+            ],
+          ),
 
-          // Ícone de notificação
-          Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),
+          // Ícone removido
+          const SizedBox.shrink(),
         ],
       ),
     );

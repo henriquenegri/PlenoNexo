@@ -305,7 +305,7 @@ class _ProfessionalRegistrationScreenState
                   SvgPicture.asset('assets/img/NeuroConecta.svg', height: 120),
                   const SizedBox(height: 8),
                   Text(
-                    'PlenoNexo',
+                    'AURA',
                     style: AppTheme.tituloPrincipal.copyWith(
                       color: AppTheme.pretoPrincipal,
                     ),

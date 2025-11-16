@@ -1,1 +1,27 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"pleno-nexo","appId":"1:153684841188:android:faf888803b7d309f5192f1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"pleno-nexo","configurations":{"android":"1:153684841188:android:faf888803b7d309f5192f1","ios":"1:153684841188:ios:e377d0d6374bf8c65192f1","web":"1:153684841188:web:c0e082fad14a9f5c5192f1"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "pleno-nexo",
+          "appId": "1:153684841188:android:faf888803b7d309f5192f1",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "pleno-nexo",
+          "configurations": {
+            "android": "1:153684841188:android:faf888803b7d309f5192f1",
+            "ios": "1:153684841188:ios:e377d0d6374bf8c65192f1",
+            "web": "1:153684841188:web:c0e082fad14a9f5c5192f1"
+          }
+        }
+      }
+    }
+  }
+}

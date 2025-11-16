@@ -4,9 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:plenonexo/services/appointment_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'opcoes_profissional.dart';
+import 'consultas_profissional.dart';
 
 class DashboardsDetalhados extends StatefulWidget {
   final String nomeProfissional;
@@ -23,6 +25,7 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AppointmentService _appointmentService = AppointmentService();
 
   String get _firstName {
     if (widget.nomeProfissional.isEmpty) {
@@ -97,6 +100,8 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
     switch (status.toLowerCase()) {
       case 'scheduled':
         return 'Agendada';
+      case 'completed':
+        return 'Realizada';
       case 'cancelled':
         return 'Cancelada';
       default:
@@ -137,6 +142,9 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
                       _buildPieChart(),
 
                       const SizedBox(height: 24),
+
+                      // Lista de consultas com ações
+                      _buildConsultasButton(),
                     ],
                   ),
                 ),
@@ -146,6 +154,47 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
         ),
       ),
       bottomNavigationBar: _buildBottomNavigation(),
+    );
+  }
+
+  Widget _buildConsultasButton() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryGreen,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Consultas", style: AppTheme.tituloPrincipal),
+          const SizedBox(height: 8),
+          Text(
+            "Acompanhe e gerencie suas consultas na tela dedicada.",
+            style: AppTheme.corpoTextoBranco.copyWith(color: Colors.white70),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppTheme.primaryGreen,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ConsultasProfissional(),
+                  ),
+                );
+              },
+              child: const Text('Ver Consultas'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -191,8 +240,8 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
             ],
           ),
 
-          // Ícone de notificação
-          Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),
+          // Ícone removido
+          const SizedBox.shrink(),
         ],
       ),
     );

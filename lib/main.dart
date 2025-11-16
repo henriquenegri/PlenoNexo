@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // Import necessário
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:plenonexo/firebase_options.dart';
-import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:plenonexo/utils/auth_check.dart';
 
@@ -18,7 +17,7 @@ class PlenoNexoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PlenoNexo',
+      title: 'AURA',
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
 

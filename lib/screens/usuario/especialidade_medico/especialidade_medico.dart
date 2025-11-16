@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/screens/usuario/especialidade_medico/selecionar_profissional/selecionar_profissional.dart';
@@ -123,7 +122,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
+                  Image.asset('assets/img/PlenoNexo.png', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -141,20 +140,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
                     ],
                   ),
                   const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.azul13.withAlpha((255 * 0.9).round()),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.notifications_outlined,
-                        color: AppTheme.brancoPrincipal,
-                        size: 28,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
             ),

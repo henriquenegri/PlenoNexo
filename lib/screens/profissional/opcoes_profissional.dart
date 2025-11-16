@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:plenonexo/models/professional_model.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:plenonexo/screens/profissional/login/login_prof.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/services/professional_service.dart';
@@ -11,6 +10,7 @@ import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'dashboards_detalhados.dart';
 import 'perfil_profissional.dart';
+import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 
 class OpcoesProfissional extends StatefulWidget {
   const OpcoesProfissional({Key? key}) : super(key: key);
@@ -25,6 +25,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
   final ProfessionalService _professionalService = ProfessionalService();
   ProfessionalModel? _currentProfessional;
   bool _isLoading = true;
+  String _professionalName = '...';
 
   @override
   void initState() {
@@ -38,16 +39,17 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
     if (mounted) {
       setState(() {
         _currentProfessional = professional;
+        _professionalName = professional?.name ?? 'Profissional';
         _isLoading = false;
       });
     }
   }
 
   String get _firstName {
-    if (_currentProfessional == null || _currentProfessional!.name.isEmpty) {
+    if (_professionalName.isEmpty || _professionalName == "...") {
       return 'Profissional';
     }
-    return _currentProfessional!.name.split(' ').first;
+    return _professionalName.split(' ').first;
   }
 
   Future<void> _deleteAccount() async {
@@ -140,10 +142,41 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SvgPicture.asset('assets/img/NeuroConecta.svg', height: 40),
+          // Avatar e nome
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppTheme.secondaryGreen,
+                child: Text(
+                  _firstName.isNotEmpty ? _firstName.substring(0, 1) : 'P',
+                  style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Olá, $_firstName",
+                    style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                      fontSize: 18,
+                    ),
+                  ),
+                  Text(
+                    formattedDate,
+                    style: AppTheme.corpoTextoBranco.copyWith(fontSize: 14),
+                  ),
+                ],
+              ),
+            ],
+          ),
 
-          // Ícone de notificação
-          Icon(Icons.notifications, color: AppTheme.brancoPrincipal, size: 24),
+          // Ícone removido
+          const SizedBox.shrink(),
         ],
       ),
     );
@@ -270,8 +303,7 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
                         if (mounted) {
                           Navigator.of(context).pushAndRemoveUntil(
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  const ProfessionalLoginPage(),
+                              builder: (context) => const WelcomeScreen(),
                             ),
                             (Route<dynamic> route) => false,
                           );

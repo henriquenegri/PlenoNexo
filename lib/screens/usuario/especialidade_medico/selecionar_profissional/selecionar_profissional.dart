@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:plenonexo/models/professional_model.dart';
 import 'package:plenonexo/models/user_model.dart';
@@ -378,7 +377,7 @@ class _SelectProfessionalScreenState extends State<SelectProfessionalScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
+                  Image.asset('assets/img/PlenoNexo.png', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,20 +400,7 @@ class _SelectProfessionalScreenState extends State<SelectProfessionalScreen> {
                     ],
                   ),
                   const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.azul13.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.notifications_outlined,
-                        color: AppTheme.brancoPrincipal,
-                        size: 28,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
             ),

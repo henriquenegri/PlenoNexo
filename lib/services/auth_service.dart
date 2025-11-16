@@ -77,6 +77,55 @@ class AuthService {
     }
   }
 
+  /// Envia um email de redefinição de senha para o email fornecido.
+  Future<(bool, String?)> resetPassword({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return (true, null); // Sucesso
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        return (false, 'Não há utilizador correspondente a este email.');
+      }
+      return (false, e.message); // Outros erros do Firebase
+    } catch (e) {
+      return (false, 'Ocorreu um erro inesperado ao tentar redefinir a senha.');
+    }
+  }
+
+  /// Altera a senha do utilizador logado.
+  /// Requer a senha atual para reautenticação.
+  Future<(bool, String?)> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null || user.email == null) {
+      return (false, 'Nenhum utilizador logado para alterar a senha.');
+    }
+
+    try {
+      // Reautenticar o utilizador com a senha atual
+      final cred = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(cred);
+
+      // Se a reautenticação for bem-sucedida, atualiza a senha
+      await user.updatePassword(newPassword);
+      return (true, 'Senha alterada com sucesso.');
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        return (false, 'A senha atual está incorreta.');
+      } else if (e.code == 'weak-password') {
+        return (false, 'A nova senha é muito fraca.');
+      }
+      return (false, 'Erro ao alterar a senha: ${e.message}');
+    } catch (e) {
+      return (false, 'Ocorreu um erro inesperado.');
+    }
+  }
+
   /// Faz o logout do utilizador atual.
   Future<void> signOut() async {
     await _auth.signOut();

@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart'; // Importe para tratar exceções
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
@@ -8,6 +8,7 @@ import 'package:plenonexo/screens/usuario/rating/professional_rating_screen.dart
 import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/services/user_service.dart';
+import 'package:flutter_svg/svg.dart';
 
 class ProfileMenuScreen extends StatefulWidget {
   const ProfileMenuScreen({super.key});
@@ -44,43 +45,30 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
     return _currentUser!.name.split(' ').first;
   }
 
-  Future<void> _logout() async {
-    try {
-      await _authService.signOut();
-
+  // MÉTODO TRANSFORMADO: De _logout para _deleteAccount
+  Future<void> _deleteAccount() async {
+    // Garante que o utilizador está carregado
+    if (_currentUser == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Logout realizado com sucesso'),
-            backgroundColor: Color(0xFF5E8D6B),
-          ),
-        );
-
-        // Navigate to welcome screen
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-          (route) => false,
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao fazer logout: $e'),
+            content: Text('Erro: Utilizador não carregado. Tente novamente.'),
             backgroundColor: Colors.red,
           ),
         );
       }
+      return;
     }
-  }
 
-  Future<void> _deleteAccount() async {
+    final uid = _currentUser!.uid;
+
     try {
-      // Delete user data from Firestore
-      await _userService.deleteUserAccount(_currentUser!.uid);
+      // 1. Apaga o documento do Firestore
+      await _userService.deleteUserAccount(uid);
 
-      // Delete user from Firebase Auth
-      await _authService.deleteUser();
+      // 2. Apaga o utilizador do Firebase Authentication
+      //    (currentUserAuth vem do seu AuthService)
+      await _authService.currentUserAuth?.delete();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -90,7 +78,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
           ),
         );
 
-        // Navigate to welcome screen
+        // Navega para a tela de boas-vindas
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => const WelcomeScreen()),
           (route) => false,
@@ -98,16 +86,20 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMessage = 'Erro ao excluir conta: $e';
+        // Erro comum: O utilizador precisa de ter feito login recentemente
+        if (e is FirebaseAuthException && e.code == 'requires-recent-login') {
+          errorMessage =
+              'Esta operação é sensível. Por favor, faça logout e login novamente antes de excluir a conta.';
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir conta: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
         );
       }
     }
   }
 
+  // DIÁLOGO ATUALIZADO: para refletir a exclusão
   void _showDeleteAccountDialog() {
     showDialog(
       context: context,
@@ -115,27 +107,17 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF2A475E),
           title: Text(
-            'Excluir Registro',
+            'Excluir Conta', // MUDADO
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFFC54B4B),
+              color: Colors.white,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tem certeza que deseja excluir sua conta?',
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Esta ação não pode ser desfeita e todos os seus dados serão perdidos permanentemente.',
-                style: GoogleFonts.poppins(fontSize: 12, color: Colors.white60),
-              ),
-            ],
+          content: Text(
+            // MUDADO
+            'Tem certeza que deseja EXCLUIR sua conta? Esta ação é permanente e não pode ser desfeita.',
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.white70),
           ),
           actions: [
             TextButton(
@@ -148,10 +130,10 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _deleteAccount();
+                _deleteAccount(); // MUDADO (chamando a nova função)
               },
               child: Text(
-                'Confirmar',
+                'Confirmar Exclusão', // MUDADO
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: const Color(0xFFC54B4B),
@@ -172,7 +154,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header
+            // Header (sem alterações)
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
@@ -184,7 +166,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
+                  Image.asset('assets/img/PlenoNexo.png', height: 60),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,20 +189,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                     ],
                   ),
                   const Spacer(),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF2A475E).withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
+                  const SizedBox.shrink(),
                 ],
               ),
             ),
@@ -253,7 +222,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                       Expanded(
                         child: Column(
                           children: [
-                            // Edit Information Option
+                            // Edit Information Option (sem alterações)
                             InkWell(
                               onTap: () {
                                 Navigator.push(
@@ -305,7 +274,6 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                             ),
                             const SizedBox(height: 16),
 
-                            // Delete Account Option
                             InkWell(
                               onTap: _showDeleteAccountDialog,
                               child: Container(
@@ -321,13 +289,13 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
                                 child: Row(
                                   children: [
                                     const Icon(
-                                      Icons.delete_outline,
+                                      Icons.delete_forever,
                                       color: Colors.white,
                                       size: 24,
                                     ),
                                     const SizedBox(width: 16),
                                     Text(
-                                      'Excluir Registro',
+                                      'Deletar Conta',
                                       style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w500,
@@ -359,7 +327,7 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
       bottomNavigationBar: BottomNavigationBar(
         unselectedItemColor: const Color(0xFF2A475E).withOpacity(0.6),
         selectedItemColor: const Color(0xFF2A475E),
-        currentIndex: 2, // Profile menu screen is the profile tab
+        currentIndex: 2,
         onTap: (index) {
           switch (index) {
             case 0:
@@ -382,18 +350,33 @@ class _ProfileMenuScreenState extends State<ProfileMenuScreen> {
               break;
           }
         },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
+        items: <BottomNavigationBarItem>[
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Início',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.star_outline),
-            activeIcon: Icon(Icons.star),
-            label: 'Avaliações',
+            icon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                const Color(0xFF2A475E).withOpacity(0.6),
+                BlendMode.srcIn,
+              ),
+            ),
+            activeIcon: SvgPicture.asset(
+              'assets/icons/iconeBatimentoCardiaco.svg',
+              height: 24,
+              colorFilter: ColorFilter.mode(
+                const Color(0xFF2A475E),
+                BlendMode.srcIn,
+              ),
+            ),
+            label: 'Consultas',
           ),
-          BottomNavigationBarItem(
+
+          const BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),
             activeIcon: Icon(Icons.person),
             label: 'Perfil',

@@ -5,6 +5,7 @@ import 'package:plenonexo/screens/profissional/cadastro/cadastro_prof.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:plenonexo/screens/profissional/dashboard_profissional.dart';
+import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 
 class ProfessionalLoginPage extends StatefulWidget {
   const ProfessionalLoginPage({super.key});
@@ -85,12 +86,20 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
                       Icons.arrow_back,
                       color: AppTheme.pretoPrincipal,
                     ),
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WelcomeScreen(),
+                        ),
+                        (route) => false,
+                      );
+                    },
                   ),
                 ),
                 SvgPicture.asset('assets/img/NeuroConecta.svg', height: 200),
                 const SizedBox(height: 8),
-                Text('PlenoNexo', style: AppTheme.tituloPrincipalPreto),
+                Text('AURA', style: AppTheme.tituloPrincipalPreto),
                 const SizedBox(height: 25),
 
                 // --- FIM DO BOTÃO TEMPORÁRIO ---
@@ -154,7 +163,9 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const ForgotPasswordScreen(),
+                                    const ForgotPasswordScreen(
+                                      userType: 'professional',
+                                    ),
                               ),
                             );
                           },
@@ -185,7 +196,7 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
                                 ),
                               )
                             : Text(
-                                'REALIZAR LOGIN',
+                                'Realizar Login',
                                 style: AppTheme.textoBotaoBranco,
                               ),
                       ),

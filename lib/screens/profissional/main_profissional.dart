@@ -97,11 +97,7 @@ class _MainProfissionalScreenState extends State<MainProfissionalScreen> {
               ),
             ],
           ),
-          const Icon(
-            Icons.notifications,
-            color: AppTheme.brancoPrincipal,
-            size: 24,
-          ),
+          const SizedBox.shrink(),
         ],
       ),
     );
