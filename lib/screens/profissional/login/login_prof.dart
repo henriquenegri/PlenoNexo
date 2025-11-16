@@ -163,7 +163,9 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const ForgotPasswordScreen(userType: 'professional'),
+                                    const ForgotPasswordScreen(
+                                      userType: 'professional',
+                                    ),
                               ),
                             );
                           },
@@ -194,7 +196,7 @@ class _UserLoginPageState extends State<ProfessionalLoginPage> {
                                 ),
                               )
                             : Text(
-                                'REALIZAR LOGIN',
+                                'Realizar Login',
                                 style: AppTheme.textoBotaoBranco,
                               ),
                       ),

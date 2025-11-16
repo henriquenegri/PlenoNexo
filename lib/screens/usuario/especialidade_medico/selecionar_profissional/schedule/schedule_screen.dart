@@ -4,6 +4,7 @@ import 'package:plenonexo/models/professional_model.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
 import 'package:plenonexo/screens/usuario/options/options_screen.dart';
 import 'package:plenonexo/services/appointment_service.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -153,7 +154,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       if (hasConflict) {
         debugPrint(
-          'Conflito: Profissional já tem consulta em ${DateFormat('dd/MM/yyyy HH:mm').format(appointmentDateTime)}',
+              'Conflito: Profissional já tem consulta em ${BrazilTime.formatDateTime(appointmentDateTime)}',
         );
       }
 
@@ -199,7 +200,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       if (hasConflict) {
         debugPrint(
-          'CONFLITO DETECTADO: Usuário já tem consulta agendada em ${DateFormat('dd/MM/yyyy HH:mm').format(appointmentDateTime)}',
+              'CONFLITO DETECTADO: Usuário já tem consulta agendada em ${BrazilTime.formatDateTime(appointmentDateTime)}',
         );
         return true; // Tem conflito
       }
@@ -240,7 +241,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       debugPrint('Usuário: ${_currentUser!.name} (${_currentUser!.uid})');
       debugPrint('Profissional: ${widget.professional.name}');
       debugPrint(
-        'Data/Hora: ${DateFormat('dd/MM/yyyy HH:mm').format(appointmentDateTime)}',
+              'Data/Hora: ${BrazilTime.formatDateTime(appointmentDateTime)}',
       );
 
       // VALIDAÇÃO 1: Verificar se o horário ainda está disponível com o profissional
@@ -285,6 +286,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         dateTime: appointmentDateTime,
         consultationPrice: widget.professional.consultationPrice,
         subject: 'Consulta com ${widget.professional.name}',
+        patientName: _currentUser!.name,
+        professionalName: widget.professional.name,
       );
 
       debugPrint('✓ Agendamento criado com sucesso!');

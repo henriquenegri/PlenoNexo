@@ -43,6 +43,8 @@ class AppointmentModel {
       consultationPrice: (data['price'] as num?)?.toDouble() ?? 0.0,
       subject: data['subject'] ?? 'Consulta',
       isReviewed: data['isReviewed'] ?? false,
+      patientName: data['patientName'],
+      professionalName: data['professionalName'],
       cancellationReason: data['cancellationReason'],
     );
   }

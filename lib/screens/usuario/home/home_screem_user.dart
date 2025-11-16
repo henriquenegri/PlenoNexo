@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/services/auth_service.dart';
@@ -9,6 +10,7 @@ import 'package:plenonexo/screens/usuario/profile/profile_edit_screen.dart';
 import 'package:plenonexo/screens/usuario/options/options_screen.dart';
 import 'package:plenonexo/screens/usuario/rating/professional_rating_screen.dart';
 import 'package:plenonexo/services/appointment_service.dart';
+import 'package:plenonexo/utils/i18n_utils.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -423,7 +425,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '${DateFormat('HH:mm').format(app.dateTime.toLocal())} - ${app.professionalName ?? 'Profissional'}',
+                      '${BrazilTime.formatTime(app.dateTime)} - ${app.professionalName ?? 'Profissional'}',
                       style: AppTheme.corpoTextoBranco.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -432,9 +434,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     ),
                   ),
                   if (canCancel && app.status == 'scheduled')
-                    IconButton(
-                      icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
-                      onPressed: () => _showCancelDialog(app),
+                    SizedBox(
+                      width: 36,
+                      height: 36,
+                      child: IconButton(
+                        iconSize: 20,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(
+                          Icons.cancel_outlined,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: () => _showCancelDialog(app),
+                      ),
                     ),
                 ],
               ),
@@ -450,7 +463,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Text(
-                    'Motivo: ${app.cancellationReason}',
+                    'Motivo: ${I18nUtils.localizeCancellationReason(app.cancellationReason!)}',
                     style: AppTheme.corpoTextoBranco.copyWith(
                       fontSize: 12,
                       color: Colors.red[100],

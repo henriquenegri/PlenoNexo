@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
 import 'package:plenonexo/services/appointment_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
@@ -76,8 +77,8 @@ class _VisualizarConsultasPageState extends State<VisualizarConsultasPage> {
 
   Widget _buildAppointmentCard(AppointmentModel appointment) {
     final date = appointment.dateTime;
-    final formattedDate = DateFormat('dd/MM/yyyy').format(date);
-    final formattedTime = DateFormat('HH:mm').format(date);
+      final formattedDate = BrazilTime.formatDate(date);
+      final formattedTime = BrazilTime.formatTime(date);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16.0),

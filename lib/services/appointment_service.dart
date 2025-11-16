@@ -13,6 +13,8 @@ class AppointmentService {
     required DateTime dateTime,
     required String subject,
     required double consultationPrice,
+    required String patientName,
+    required String professionalName,
     String status = 'scheduled',
   }) async {
     // Garantir que a data seja salva em UTC para consistência
@@ -24,6 +26,8 @@ class AppointmentService {
       'dateTime': Timestamp.fromDate(utcDateTime),
       'subject': subject,
       'price': consultationPrice,
+      'patientName': patientName,
+      'professionalName': professionalName,
       'status': status,
       'createdAt': FieldValue.serverTimestamp(),
     });
@@ -223,15 +227,20 @@ class AppointmentService {
       List<AppointmentModel> appointments = [];
       for (var doc in snapshot.docs) {
         final appointment = AppointmentModel.fromFirestore(doc);
-
-        // Buscar nome do paciente
-        final userDoc = await _firestore
-            .collection('users')
-            .doc(appointment.patientId)
-            .get();
-        if (userDoc.exists) {
-          final userModel = UserModel.fromFirestore(userDoc);
-          appointment.patientName = userModel.name;
+        // Se o nome do paciente não estiver salvo no documento, buscar uma vez
+        if (appointment.patientName == null || appointment.patientName!.isEmpty) {
+          try {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(appointment.patientId)
+                .get();
+            if (userDoc.exists) {
+              final userModel = UserModel.fromFirestore(userDoc);
+              appointment.patientName = userModel.name;
+            }
+          } catch (e) {
+            print('DEBUG: Erro ao buscar paciente: $e');
+          }
         }
 
         appointments.add(appointment);
@@ -607,15 +616,21 @@ class AppointmentService {
       List<AppointmentModel> appointments = [];
       for (var doc in snapshot.docs) {
         final appointment = AppointmentModel.fromFirestore(doc);
-
-        final professionalDoc = await _firestore
-            .collection('professionals')
-            .doc(appointment.professionalId)
-            .get();
-        if (professionalDoc.exists) {
-          final professionalModel =
-              ProfessionalModel.fromFirestore(professionalDoc);
-          appointment.professionalName = professionalModel.name;
+        // Se já estiver salvo no documento, não precisa buscar
+        if (appointment.professionalName == null || appointment.professionalName!.isEmpty) {
+          try {
+            final professionalDoc = await _firestore
+                .collection('users')
+                .doc(appointment.professionalId)
+                .get();
+            if (professionalDoc.exists) {
+              final professionalModel =
+                  ProfessionalModel.fromFirestore(professionalDoc);
+              appointment.professionalName = professionalModel.name;
+            }
+          } catch (e) {
+            print('DEBUG: Erro ao buscar profissional: $e');
+          }
         }
 
         appointments.add(appointment);

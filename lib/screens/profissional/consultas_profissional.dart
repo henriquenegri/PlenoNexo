@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
+import 'package:plenonexo/utils/i18n_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
@@ -227,7 +229,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
               children: [
                 const SizedBox(height: 4),
                 Text(
-                  DateFormat('dd/MM/yyyy - HH:mm').format(appointment.dateTime),
+                BrazilTime.formatDateTime(appointment.dateTime),
                   style: GoogleFonts.poppins(fontSize: 14),
                 ),
                 const SizedBox(height: 2),
@@ -305,7 +307,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Consulta cancelada: ${appointment.cancellationReason}',
+                      'Consulta cancelada: ${I18nUtils.localizeCancellationReason(appointment.cancellationReason!)}',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.red[600],

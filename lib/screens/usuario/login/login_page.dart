@@ -167,7 +167,9 @@ class _UserLoginPageState extends State<UserLoginPage> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
-                                    const ForgotPasswordScreen(userType: 'patient'),
+                                    const ForgotPasswordScreen(
+                                      userType: 'patient',
+                                    ),
                               ),
                             );
                           },
@@ -199,7 +201,7 @@ class _UserLoginPageState extends State<UserLoginPage> {
                                 ),
                               )
                             : Text(
-                                'REALIZAR LOGIN',
+                                'Realizar Login',
                                 style: AppTheme.textoBotaoBranco,
                               ),
                       ),

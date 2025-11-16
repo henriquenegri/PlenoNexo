@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
 import 'package:plenonexo/models/avaliacao_screen.dart';
 import 'package:plenonexo/models/professional_model.dart';
@@ -64,7 +65,9 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
 
       // Apenas consultas que foram completadas e ainda não foram avaliadas
       final completedAppointments = allAppointments
-          .where((app) => app.status.toLowerCase() == 'completed' && !app.isReviewed)
+          .where(
+            (app) => app.status.toLowerCase() == 'completed' && !app.isReviewed,
+          )
           .toList();
 
       List<AppointmentWithProfessional> reviewsWithProfessionals = [];
@@ -110,7 +113,9 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
   Widget _buildReviewCard(AppointmentWithProfessional item) {
     final professional = item.professional;
     final appointment = item.appointment;
-    final canReview = appointment.status.toLowerCase() == 'completed' && !appointment.isReviewed;
+    final canReview =
+        appointment.status.toLowerCase() == 'completed' &&
+        !appointment.isReviewed;
 
     return Card(
       elevation: 4,
@@ -141,7 +146,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Consulta em: ${DateFormat('dd/MM/yyyy \'às\' HH:mm').format(appointment.dateTime)}',
+              'Consulta em: ${BrazilTime.formatDateTime(appointment.dateTime)}',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white70,
@@ -163,9 +168,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      appointment.isReviewed
-                          ? 'Avaliada'
-                          : 'Pendente',
+                      appointment.isReviewed ? 'Avaliada' : 'Pendente',
                       style: GoogleFonts.poppins(
                         fontSize: 10,
                         color: Colors.white,
@@ -277,7 +280,9 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
     }
 
     return StreamBuilder<List<AppointmentModel>>(
-      stream: _appointmentService.getPatientAppointmentsStream(_currentUser!.uid),
+      stream: _appointmentService.getPatientAppointmentsStream(
+        _currentUser!.uid,
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -295,14 +300,16 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
         }
 
         final now = DateTime.now();
-        final items = snapshot.data!
-            .where((a) => a.dateTime.isAfter(now.subtract(const Duration(days: 7))))
-            .toList()
-          ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
+        final items =
+            snapshot.data!
+                .where(
+                  (a) =>
+                      a.dateTime.isAfter(now.subtract(const Duration(days: 7))),
+                )
+                .toList()
+              ..sort((a, b) => a.dateTime.compareTo(b.dateTime));
 
-        return Column(
-          children: items.map(_buildAppointmentTile).toList(),
-        );
+        return Column(children: items.map(_buildAppointmentTile).toList());
       },
     );
   }
@@ -310,7 +317,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
   Widget _buildAppointmentTile(AppointmentModel appointment) {
     final isCancelled = appointment.status.toLowerCase() == 'cancelled';
     final isScheduled = appointment.status.toLowerCase() == 'scheduled';
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(appointment.dateTime);
+            final dateStr = BrazilTime.formatDateTime(appointment.dateTime);
 
     return Card(
       color: const Color(0xFF3B748F),
@@ -347,13 +354,16 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: isCancelled
                         ? Colors.redAccent
                         : isScheduled
-                            ? Colors.orangeAccent
-                            : Colors.blueAccent,
+                        ? Colors.orangeAccent
+                        : Colors.blueAccent,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -416,9 +426,9 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
         'Cancelado pelo paciente',
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Consulta cancelada.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Consulta cancelada.')));
       }
     } catch (e) {
       if (mounted) {
@@ -512,7 +522,9 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                     Expanded(
                       child: _isLoading
                           ? const Center(
-                              child: CircularProgressIndicator(color: Colors.white),
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
                             )
                           : ListView(
                               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -552,7 +564,9 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                                     ),
                                   )
                                 else
-                                  ..._pendingReviews.map(_buildReviewCard).toList(),
+                                  ..._pendingReviews
+                                      .map(_buildReviewCard)
+                                      .toList(),
 
                                 const SizedBox(height: 24),
 
@@ -560,7 +574,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      'Consultas Agendadas / Canceladas',
+                                      'Consultas Agendadas',
                                       style: GoogleFonts.montserrat(
                                         fontSize: 18,
                                         fontWeight: FontWeight.w600,

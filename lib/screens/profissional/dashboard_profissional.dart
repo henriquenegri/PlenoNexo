@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:plenonexo/utils/time_utils.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:plenonexo/models/agendamento_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -436,7 +437,7 @@ class _DashboardProfissionalState extends State<DashboardProfissional> {
                       ),
                     ),
                     subtitle: Text(
-                      DateFormat('HH:mm').format(appointment.dateTime),
+                      BrazilTime.formatTime(appointment.dateTime),
                       style: GoogleFonts.poppins(fontSize: 14),
                     ),
                     trailing: Container(
