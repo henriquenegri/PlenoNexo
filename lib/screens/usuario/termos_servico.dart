@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/utils/app_theme.dart';
 
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
@@ -75,10 +75,7 @@ class _SectionText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: TextStyle(
-        color: AppTheme.pretoPrincipal,
-        fontSize: 14,
-      ),
+      style: TextStyle(color: AppTheme.pretoPrincipal, fontSize: 14),
     );
   }
 }

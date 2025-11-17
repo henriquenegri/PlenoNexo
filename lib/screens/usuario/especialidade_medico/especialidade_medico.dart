@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/screens/usuario/especialidade_medico/selecionar_profissional/selecionar_profissional.dart';
-import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
-import 'package:plenonexo/screens/usuario/options/options_screen.dart';
-import 'package:plenonexo/services/professional_service.dart';
-import 'package:plenonexo/services/user_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/screens/usuario/especialidade_medico/selecionar_profissional/selecionar_profissional.dart';
+import 'package:AURA/screens/usuario/home/home_screem_user.dart';
+import 'package:AURA/screens/usuario/options/options_screen.dart';
+import 'package:AURA/services/professional_service.dart';
+import 'package:AURA/services/user_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 
 class SelectSpecialtyScreen extends StatefulWidget {
   const SelectSpecialtyScreen({super.key});
@@ -183,13 +183,15 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: AppTheme.pretoPrincipal.withAlpha(
-          (255 * 0.6).round(),
-        ),
-        selectedItemColor: AppTheme.azul9,
-        currentIndex: _selectedIndex,
-        onTap: (index) {
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          unselectedItemColor: AppTheme.pretoPrincipal.withAlpha(
+            (255 * 0.6).round(),
+          ),
+          selectedItemColor: AppTheme.azul9,
+          currentIndex: _selectedIndex,
+          onTap: (index) {
           switch (index) {
             case 0: // Início
               Navigator.of(context).pushAndRemoveUntil(
@@ -224,6 +226,7 @@ class _SelectSpecialtyScreenState extends State<SelectSpecialtyScreen> {
             label: 'Perfil',
           ),
         ],
+        ),
       ),
     );
   }

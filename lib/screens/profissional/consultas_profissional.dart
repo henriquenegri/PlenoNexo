@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/utils/time_utils.dart';
-import 'package:plenonexo/utils/i18n_utils.dart';
+import 'package:AURA/utils/time_utils.dart';
+import 'package:AURA/utils/i18n_utils.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:plenonexo/services/appointment_service.dart';
-import 'package:plenonexo/services/user_service.dart';
+import 'package:AURA/models/agendamento_model.dart';
+import 'package:AURA/services/appointment_service.dart';
+import 'package:AURA/services/user_service.dart';
 import '../../utils/app_theme.dart';
 
 class ConsultasProfissional extends StatefulWidget {
@@ -21,7 +21,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final AppointmentService _appointmentService = AppointmentService();
   final UserService _userService = UserService();
-  
+
   String _filtroStatus = 'Todas';
   bool _mostrarApenasHoje = false;
 
@@ -58,7 +58,9 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
           _buildFiltros(),
           Expanded(
             child: StreamBuilder<List<AppointmentModel>>(
-              stream: _appointmentService.getProfessionalAppointmentsSimple(user.uid),
+              stream: _appointmentService.getProfessionalAppointmentsSimple(
+                user.uid,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -87,21 +89,22 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
                 }
 
                 var appointments = snapshot.data!;
-                
+
                 // Aplicar filtros
                 if (_filtroStatus != 'Todas') {
                   appointments = appointments.where((appointment) {
-                    return appointment.status.toLowerCase() == _filtroStatus.toLowerCase();
+                    return appointment.status.toLowerCase() ==
+                        _filtroStatus.toLowerCase();
                   }).toList();
                 }
-                
+
                 if (_mostrarApenasHoje) {
                   final now = DateTime.now();
                   appointments = appointments.where((appointment) {
                     final appointmentDate = appointment.dateTime;
-                    return appointmentDate.year == now.year && 
-                           appointmentDate.month == now.month && 
-                           appointmentDate.day == now.day;
+                    return appointmentDate.year == now.year &&
+                        appointmentDate.month == now.month &&
+                        appointmentDate.day == now.day;
                   }).toList();
                 }
 
@@ -148,11 +151,12 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
               underline: Container(),
               items: ['Todas', 'scheduled', 'cancelled', 'completed', 'missed']
                   .map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(_translateStatus(value)),
-                );
-              }).toList(),
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(_translateStatus(value)),
+                    );
+                  })
+                  .toList(),
               onChanged: (String? newValue) {
                 setState(() {
                   _filtroStatus = newValue!;
@@ -229,17 +233,23 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
               children: [
                 const SizedBox(height: 4),
                 Text(
-                BrazilTime.formatDateTime(appointment.dateTime),
+                  BrazilTime.formatDateTime(appointment.dateTime),
                   style: GoogleFonts.poppins(fontSize: 14),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   appointment.subject,
-                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -259,7 +269,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
               onSelected: (value) => _handleMenuSelection(value, appointment),
               itemBuilder: (BuildContext context) {
                 final menuItems = <PopupMenuEntry<String>>[];
-                
+
                 // Cancelar consulta (profissional e paciente)
                 if (appointment.status == 'scheduled') {
                   menuItems.add(
@@ -275,7 +285,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
                     ),
                   );
                 }
-                
+
                 if (menuItems.isEmpty) {
                   menuItems.add(
                     const PopupMenuItem<String>(
@@ -285,12 +295,13 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
                     ),
                   );
                 }
-                
+
                 return menuItems;
               },
             ),
           ),
-          if (appointment.status == 'cancelled' && appointment.cancellationReason != null)
+          if (appointment.status == 'cancelled' &&
+              appointment.cancellationReason != null)
             Container(
               padding: const EdgeInsets.all(16),
               margin: const EdgeInsets.only(top: 8),
@@ -362,7 +373,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
     if (status == 'scheduled' && isPast) {
       return Colors.orange; // Perdido
     }
-    
+
     switch (status.toLowerCase()) {
       case 'scheduled':
         return Colors.blue;
@@ -381,7 +392,7 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
     if (status == 'scheduled' && isPast) {
       return Icons.event_busy;
     }
-    
+
     switch (status.toLowerCase()) {
       case 'scheduled':
         return Icons.event_available;
@@ -429,7 +440,10 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
 
   Future<void> _marcarComoRealizada(AppointmentModel appointment) async {
     try {
-      await _appointmentService.updateAppointmentStatus(appointment.id, 'completed');
+      await _appointmentService.updateAppointmentStatus(
+        appointment.id,
+        'completed',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Consulta marcada como realizada!'),
@@ -450,7 +464,8 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
     try {
       final scheduled = appointment.dateTime;
       final now = DateTime.now();
-      final isSameDay = now.year == scheduled.year &&
+      final isSameDay =
+          now.year == scheduled.year &&
           now.month == scheduled.month &&
           now.day == scheduled.day;
       final isSameHour = now.hour == scheduled.hour;
@@ -467,7 +482,10 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
         return;
       }
 
-      await _appointmentService.updateAppointmentStatus(appointment.id, 'completed');
+      await _appointmentService.updateAppointmentStatus(
+        appointment.id,
+        'completed',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Consulta confirmada como realizada.'),
@@ -488,7 +506,10 @@ class _ConsultasProfissionalState extends State<ConsultasProfissional> {
     final motivo = await _mostrarDialogoCancelamento();
     if (motivo != null && motivo.isNotEmpty) {
       try {
-        await _appointmentService.cancelAppointment(appointment.id, 'Cancelado pelo profissional: $motivo');
+        await _appointmentService.cancelAppointment(
+          appointment.id,
+          'Cancelado pelo profissional: $motivo',
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Consulta cancelada com sucesso!'),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:plenonexo/screens/esqueceuSenha/esqueceu_senha.dart';
-import 'package:plenonexo/screens/usuario/cadastro/cadastrar_usuario.dart';
-import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
-import 'package:plenonexo/screens/welcome/welcome_screen.dart';
+import 'package:AURA/screens/esqueceuSenha/esqueceu_senha.dart';
+import 'package:AURA/screens/usuario/cadastro/cadastrar_usuario.dart';
+import 'package:AURA/screens/usuario/home/home_screem_user.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/utils/app_theme.dart';
+import 'package:AURA/screens/welcome/welcome_screen.dart';
 
 class UserLoginPage extends StatefulWidget {
   const UserLoginPage({super.key});

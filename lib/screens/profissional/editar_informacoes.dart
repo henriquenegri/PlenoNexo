@@ -4,9 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 // ADICIONADO IMPORT PARA DATA
 import 'package:intl/intl.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/services/professional_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/services/professional_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 import '../../widgets/save_button.dart';
 
 class EditarInformacoesPage extends StatefulWidget {
@@ -293,9 +293,7 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
             ),
           ],
         ),
-        actions: const [
-          SizedBox(width: 8),
-        ],
+        actions: const [SizedBox(width: 8)],
       ),
 
       body: _isLoading
@@ -384,10 +382,7 @@ class _EditarInformacoesPageState extends State<EditarInformacoesPage> {
                     _buildSectionTitle('Disponibilidade'),
                     _buildAvailableDaysCheckboxes(),
                     const SizedBox(height: 32),
-                    SaveButton(
-                      isLoading: _isLoading,
-                      onPressed: _saveChanges,
-                    ),
+                    SaveButton(isLoading: _isLoading, onPressed: _saveChanges),
                   ],
                 ),
               ),

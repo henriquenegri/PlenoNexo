@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
-import 'package:plenonexo/screens/usuario/profile/profile_menu_screen.dart';
-import 'package:plenonexo/screens/usuario/rating/professional_rating_screen.dart';
-import 'package:plenonexo/screens/welcome/welcome_screen.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/services/user_service.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/screens/usuario/home/home_screem_user.dart';
+import 'package:AURA/screens/usuario/profile/profile_menu_screen.dart';
+import 'package:AURA/screens/usuario/rating/professional_rating_screen.dart';
+import 'package:AURA/screens/welcome/welcome_screen.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/services/user_service.dart';
 
 class OptionsScreen extends StatefulWidget {
   const OptionsScreen({super.key});
@@ -294,65 +294,70 @@ class _OptionsScreenState extends State<OptionsScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: const Color(
-          0xFF2A475E,
-        ).withAlpha((255 * 0.6).round()),
-        selectedItemColor: const Color(0xFF2A475E),
-        currentIndex: 2,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const UserHomeScreen()),
-                (route) => false,
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfessionalRatingScreen(),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          unselectedItemColor: const Color(
+            0xFF2A475E,
+          ).withAlpha((255 * 0.6).round()),
+          selectedItemColor: const Color(0xFF2A475E),
+          currentIndex: 2,
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserHomeScreen(),
+                  ),
+                  (route) => false,
+                );
+                break;
+              case 1:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProfessionalRatingScreen(),
+                  ),
+                );
+                break;
+              case 2:
+                // Already on options screen
+                break;
+            }
+          },
+          items: <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Início',
+            ),
+            BottomNavigationBarItem(
+              icon: SvgPicture.asset(
+                'assets/icons/iconeBatimentoCardiaco.svg',
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  const Color(0xFF2A475E).withOpacity(0.6),
+                  BlendMode.srcIn,
                 ),
-              );
-              break;
-            case 2:
-              // Already on options screen
-              break;
-          }
-        },
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              'assets/icons/iconeBatimentoCardiaco.svg',
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                const Color(0xFF2A475E).withOpacity(0.6),
-                BlendMode.srcIn,
               ),
-            ),
-            activeIcon: SvgPicture.asset(
-              'assets/icons/iconeBatimentoCardiaco.svg',
-              height: 24,
-              colorFilter: ColorFilter.mode(
-                const Color(0xFF2A475E),
-                BlendMode.srcIn,
+              activeIcon: SvgPicture.asset(
+                'assets/icons/iconeBatimentoCardiaco.svg',
+                height: 24,
+                colorFilter: ColorFilter.mode(
+                  const Color(0xFF2A475E),
+                  BlendMode.srcIn,
+                ),
               ),
+              label: 'Consultas',
             ),
-            label: 'Consultas',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Perfil',
+            ),
+          ],
+        ),
       ),
     );
   }

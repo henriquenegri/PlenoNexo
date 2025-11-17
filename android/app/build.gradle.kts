@@ -14,14 +14,16 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        // Necessário para usar APIs Java 8/11 em minSdk baixo (desugaring)
+        // Atualiza para Java 17 para evitar avisos de opções obsoletas
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        // Desugaring para compatibilidade com minSdk baixo
         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        // JVM target alinhado com Java 17
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
     defaultConfig {

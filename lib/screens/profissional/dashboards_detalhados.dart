@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:plenonexo/services/appointment_service.dart';
+import 'package:AURA/services/appointment_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'opcoes_profissional.dart';
@@ -284,10 +285,21 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
                   );
                 }
 
+                final maxRodValue = snapshot.data!
+                    .map((group) => group.barRods
+                        .map((rod) => rod.toY)
+                        .fold<double>(0, (a, b) => math.max(a, b)))
+                    .fold<double>(0, (a, b) => math.max(a, b));
+                final double roundedMaxYDouble =
+                    (((maxRodValue.ceil() + 9) ~/ 10) * 10).toDouble();
+                double interval = roundedMaxYDouble / 4;
+                if (interval < 1.0) interval = 1.0;
+                if (interval > 1000.0) interval = 1000.0;
+
                 return BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
-                    maxY: 20,
+                    maxY: roundedMaxYDouble,
                     barTouchData: BarTouchData(
                       enabled: true,
                       touchTooltipData: BarTouchTooltipData(
@@ -319,17 +331,15 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
                           showTitles: true,
+                          interval: interval,
                           getTitlesWidget: (value, meta) {
-                            if (value % 5 == 0) {
-                              return Text(
-                                value.toInt().toString(),
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white70,
-                                  fontSize: 10,
-                                ),
-                              );
-                            }
-                            return const Text('');
+                            return Text(
+                              value.toInt().toString(),
+                              style: GoogleFonts.poppins(
+                                color: Colors.white70,
+                                fontSize: 10,
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -342,7 +352,7 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
                     ),
                     gridData: FlGridData(
                       show: true,
-                      horizontalInterval: 5,
+                      horizontalInterval: interval,
                       getDrawingHorizontalLine: (value) => FlLine(
                         color: AppTheme.secondaryGreen.withAlpha(
                           (255 * 0.3).round(),
@@ -506,25 +516,28 @@ class _DashboardsDetalhadosState extends State<DashboardsDetalhados> {
   }
 
   Widget _buildBottomNavigation() {
-    return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha((255 * 0.1).round()),
-            blurRadius: 10,
-            offset: const Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, Icons.home, "Home"),
-          _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
-          _buildNavItem(2, Icons.person, "Perfil"),
-        ],
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: AppTheme.background,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha((255 * 0.1).round()),
+              blurRadius: 10,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(0, Icons.home, "Home"),
+            _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
+            _buildNavItem(2, Icons.person, "Perfil"),
+          ],
+        ),
       ),
     );
   }

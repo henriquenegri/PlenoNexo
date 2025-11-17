@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/utils/time_utils.dart';
-import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:plenonexo/models/avaliacao_screen.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
-import 'package:plenonexo/services/appointment_service.dart';
-import 'package:plenonexo/services/professional_service.dart';
-import 'package:plenonexo/services/user_service.dart';
-import 'package:plenonexo/screens/usuario/options/options_screen.dart';
+import 'package:AURA/utils/time_utils.dart';
+import 'package:AURA/models/agendamento_model.dart';
+import 'package:AURA/models/avaliacao_screen.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/screens/usuario/home/home_screem_user.dart';
+import 'package:AURA/services/appointment_service.dart';
+import 'package:AURA/services/professional_service.dart';
+import 'package:AURA/services/user_service.dart';
+import 'package:AURA/screens/usuario/options/options_screen.dart';
 import 'package:flutter_svg/svg.dart';
 
 class AppointmentWithProfessional {
@@ -146,7 +146,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
                 children: [
                   Expanded(
                     child: Text(
-              'Consulta em: ${BrazilTime.formatDateTime(appointment.dateTime)}',
+                      'Consulta em: ${BrazilTime.formatDateTime(appointment.dateTime)}',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.white70,
@@ -317,7 +317,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
   Widget _buildAppointmentTile(AppointmentModel appointment) {
     final isCancelled = appointment.status.toLowerCase() == 'cancelled';
     final isScheduled = appointment.status.toLowerCase() == 'scheduled';
-            final dateStr = BrazilTime.formatDateTime(appointment.dateTime);
+    final dateStr = BrazilTime.formatDateTime(appointment.dateTime);
 
     return Card(
       color: const Color(0xFF3B748F),
@@ -596,12 +596,14 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: const Color(0xFF2A475E).withOpacity(0.6),
-        selectedItemColor: const Color(0xFF2A475E),
-        currentIndex:
-            1, // Garante que o ícone de "Avaliações" esteja selecionado
-        onTap: (index) {
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          unselectedItemColor: const Color(0xFF2A475E).withOpacity(0.6),
+          selectedItemColor: const Color(0xFF2A475E),
+          currentIndex:
+              1, // Garante que o ícone de "Avaliações" esteja selecionado
+          onTap: (index) {
           switch (index) {
             case 0:
               Navigator.pushAndRemoveUntil(
@@ -651,6 +653,7 @@ class _ProfessionalRatingScreenState extends State<ProfessionalRatingScreen> {
             label: 'Perfil',
           ),
         ],
+        ),
       ),
     );
   }

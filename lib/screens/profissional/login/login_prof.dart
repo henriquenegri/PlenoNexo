@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:plenonexo/screens/esqueceuSenha/esqueceu_senha.dart';
-import 'package:plenonexo/screens/profissional/cadastro/cadastro_prof.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
-import 'package:plenonexo/screens/profissional/dashboard_profissional.dart';
-import 'package:plenonexo/screens/welcome/welcome_screen.dart';
+import 'package:AURA/screens/esqueceuSenha/esqueceu_senha.dart';
+import 'package:AURA/screens/profissional/cadastro/cadastro_prof.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/utils/app_theme.dart';
+import 'package:AURA/screens/profissional/dashboard_profissional.dart';
+import 'package:AURA/screens/welcome/welcome_screen.dart';
 
 class ProfessionalLoginPage extends StatefulWidget {
   const ProfessionalLoginPage({super.key});

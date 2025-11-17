@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/services/professional_service.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/services/professional_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'dashboards_detalhados.dart';
@@ -252,25 +252,28 @@ class _PerfilProfissionalState extends State<PerfilProfissional> {
   }
 
   Widget _buildBottomNavigation() {
-    return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, Icons.home, "Home"),
-          _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
-          _buildNavItem(2, Icons.person, "Perfil"),
-        ],
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: AppTheme.background,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(0, Icons.home, "Home"),
+            _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
+            _buildNavItem(2, Icons.person, "Perfil"),
+          ],
+        ),
       ),
     );
   }

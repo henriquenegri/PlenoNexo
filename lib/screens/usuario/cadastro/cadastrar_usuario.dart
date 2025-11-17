@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
 import 'package:flutter/services.dart';
-import 'package:plenonexo/services/user_service.dart';
-import 'package:plenonexo/screens/usuario/termos_servico.dart';
+import 'package:AURA/services/user_service.dart';
+import 'package:AURA/screens/usuario/termos_servico.dart';
 
 class CadastrarUsuario extends StatefulWidget {
   const CadastrarUsuario({super.key});

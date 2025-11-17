@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/services/professional_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/services/professional_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 
 class ProfessionalRegistrationScreen extends StatefulWidget {
   const ProfessionalRegistrationScreen({super.key});

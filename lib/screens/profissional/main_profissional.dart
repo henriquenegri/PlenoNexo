@@ -104,25 +104,28 @@ class _MainProfissionalScreenState extends State<MainProfissionalScreen> {
   }
 
   Widget _buildBottomNavigation() {
-    return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        color: AppTheme.brancoPrincipal,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, Icons.home, "Home"),
-          _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
-          _buildNavItem(2, Icons.person, "Perfil"),
-        ],
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: AppTheme.brancoPrincipal,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(0, Icons.home, "Home"),
+            _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
+            _buildNavItem(2, Icons.person, "Perfil"),
+          ],
+        ),
       ),
     );
   }

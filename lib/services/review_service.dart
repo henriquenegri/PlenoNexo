@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:plenonexo/models/review_model.dart';
+import 'package:AURA/models/review_model.dart';
 
 class ReviewService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -32,7 +32,9 @@ class ReviewService {
     });
   }
 
-  Future<List<ReviewModel>> getProfessionalReviews(String professionalId) async {
+  Future<List<ReviewModel>> getProfessionalReviews(
+    String professionalId,
+  ) async {
     final snapshot = await _firestore
         .collection('ratings')
         .where('professionalId', isEqualTo: professionalId)

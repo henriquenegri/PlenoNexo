@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/services/user_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/services/user_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 import '../../widgets/save_button.dart';
 
 class EditarInformacoesUsuarioPage extends StatefulWidget {
@@ -313,10 +313,7 @@ class _EditarInformacoesUsuarioPageState
                       },
                     ),
                     const SizedBox(height: 32),
-                    SaveButton(
-                      isLoading: _isLoading,
-                      onPressed: _saveChanges,
-                    ),
+                    SaveButton(isLoading: _isLoading, onPressed: _saveChanges),
                   ],
                 ),
               ),

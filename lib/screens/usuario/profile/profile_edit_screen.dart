@@ -3,10 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart'; // Importe para formatar a data
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/screens/welcome/welcome_screen.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/services/user_service.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/screens/welcome/welcome_screen.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/services/user_service.dart';
 import '../../../widgets/save_button.dart';
 
 class ProfileEditScreen extends StatefulWidget {

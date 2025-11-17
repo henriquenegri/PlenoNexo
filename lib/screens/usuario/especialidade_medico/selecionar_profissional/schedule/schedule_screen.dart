@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/screens/usuario/home/home_screem_user.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/screens/usuario/home/home_screem_user.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/utils/time_utils.dart';
-import 'package:plenonexo/screens/usuario/options/options_screen.dart';
-import 'package:plenonexo/services/appointment_service.dart';
+import 'package:AURA/utils/time_utils.dart';
+import 'package:AURA/screens/usuario/options/options_screen.dart';
+import 'package:AURA/services/appointment_service.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:plenonexo/services/user_service.dart';
-import 'package:plenonexo/services/notification_service.dart';
+import 'package:AURA/services/user_service.dart';
+import 'package:AURA/services/notification_service.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final ProfessionalModel professional;
@@ -155,7 +155,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       if (hasConflict) {
         debugPrint(
-              'Conflito: Profissional já tem consulta em ${BrazilTime.formatDateTime(appointmentDateTime)}',
+          'Conflito: Profissional já tem consulta em ${BrazilTime.formatDateTime(appointmentDateTime)}',
         );
       }
 
@@ -201,7 +201,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       if (hasConflict) {
         debugPrint(
-              'CONFLITO DETECTADO: Usuário já tem consulta agendada em ${BrazilTime.formatDateTime(appointmentDateTime)}',
+          'CONFLITO DETECTADO: Usuário já tem consulta agendada em ${BrazilTime.formatDateTime(appointmentDateTime)}',
         );
         return true; // Tem conflito
       }
@@ -242,7 +242,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       debugPrint('Usuário: ${_currentUser!.name} (${_currentUser!.uid})');
       debugPrint('Profissional: ${widget.professional.name}');
       debugPrint(
-              'Data/Hora: ${BrazilTime.formatDateTime(appointmentDateTime)}',
+        'Data/Hora: ${BrazilTime.formatDateTime(appointmentDateTime)}',
       );
 
       // VALIDAÇÃO 1: Verificar se o horário ainda está disponível com o profissional
@@ -451,7 +451,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                      padding: const EdgeInsets.fromLTRB(18, 4, 18, 18),
                       child: Row(
                         children: [
                           Expanded(
@@ -527,49 +527,56 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        unselectedItemColor: const Color(
-          0xFF2A475E,
-        ).withAlpha((0.6 * 255).round()),
-        selectedItemColor: const Color(0xFF2A475E),
-        currentIndex: 1,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const UserHomeScreen()),
-                (route) => false,
-              );
-              break;
-            case 1:
-              // Already on schedule screen
-              break;
-            case 2:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OptionsScreen()),
-              );
-              break;
-          }
-        },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Início',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
-            label: 'Agendar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Perfil',
-          ),
-        ],
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: BottomNavigationBar(
+          unselectedItemColor: const Color(
+            0xFF2A475E,
+          ).withAlpha((0.6 * 255).round()),
+          selectedItemColor: const Color(0xFF2A475E),
+          currentIndex: 1,
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserHomeScreen(),
+                  ),
+                  (route) => false,
+                );
+                break;
+              case 1:
+                // Already on schedule screen
+                break;
+              case 2:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OptionsScreen(),
+                  ),
+                );
+                break;
+            }
+          },
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Início',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today_outlined),
+              activeIcon: Icon(Icons.calendar_today),
+              label: 'Agendar',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Perfil',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -654,11 +661,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
+      // Adapta o número de colunas automaticamente garantindo largura mínima confortável
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 140,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 2.5,
+        childAspectRatio: 2.2,
       ),
       itemCount: timeSlots.length,
       itemBuilder: (context, index) {
@@ -676,18 +684,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: _getSlotColor(timeSlot),
             foregroundColor: Colors.white,
+            disabledForegroundColor: Colors.white70,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
             elevation: 0,
             disabledBackgroundColor: const Color(0xFFC54B4B),
+            padding: const EdgeInsets.symmetric(vertical: 12),
           ),
           child: Text(
             timeSlot,
             style: GoogleFonts.poppins(
               fontSize: 14,
               fontWeight: FontWeight.w600,
+              color: isAvailable ? Colors.white : Colors.white70,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            softWrap: false,
+            overflow: TextOverflow.fade,
           ),
         );
       },

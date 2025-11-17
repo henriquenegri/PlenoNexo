@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/utils/time_utils.dart';
-import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/screens/usuario/especialidade_medico/especialidade_medico.dart';
-import 'package:plenonexo/screens/usuario/profile/profile_edit_screen.dart';
-import 'package:plenonexo/screens/usuario/options/options_screen.dart';
-import 'package:plenonexo/screens/usuario/rating/professional_rating_screen.dart';
-import 'package:plenonexo/services/appointment_service.dart';
-import 'package:plenonexo/utils/i18n_utils.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/utils/time_utils.dart';
+import 'package:AURA/models/agendamento_model.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/screens/usuario/especialidade_medico/especialidade_medico.dart';
+import 'package:AURA/screens/usuario/profile/profile_edit_screen.dart';
+import 'package:AURA/screens/usuario/options/options_screen.dart';
+import 'package:AURA/screens/usuario/rating/professional_rating_screen.dart';
+import 'package:AURA/services/appointment_service.dart';
+import 'package:AURA/utils/i18n_utils.dart';
+import 'package:AURA/utils/app_theme.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class UserHomeScreen extends StatefulWidget {
@@ -544,13 +544,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     }
   }
 
-  BottomNavigationBar _buildBottomNavigation() {
-    return BottomNavigationBar(
-      unselectedItemColor: AppTheme.pretoPrincipal.withOpacity(0.6),
-      selectedItemColor: AppTheme.azul9,
-      currentIndex: _selectedIndex,
-      onTap: (index) {
-        if (_selectedIndex == index) return;
+  Widget _buildBottomNavigation() {
+    return SafeArea(
+      top: false,
+      child: BottomNavigationBar(
+        unselectedItemColor: AppTheme.pretoPrincipal.withOpacity(0.6),
+        selectedItemColor: AppTheme.azul9,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          if (_selectedIndex == index) return;
 
         switch (index) {
           case 0:
@@ -599,6 +601,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           label: 'Perfil',
         ),
       ],
+      ),
     );
   }
 }

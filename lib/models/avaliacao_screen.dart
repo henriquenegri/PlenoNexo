@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:plenonexo/models/agendamento_model.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/services/review_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/models/agendamento_model.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/services/review_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 
 class AvaliacaoScreen extends StatefulWidget {
   final AppointmentModel appointment;

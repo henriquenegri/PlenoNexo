@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:plenonexo/models/professional_model.dart';
+import 'package:AURA/models/professional_model.dart';
 
 class ProfessionalService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

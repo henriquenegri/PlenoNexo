@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/screens/profissional/login/login_prof.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/services/professional_service.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/screens/profissional/login/login_prof.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/services/professional_service.dart';
 import '../../utils/app_theme.dart';
 import 'dashboard_profissional.dart';
 import 'dashboards_detalhados.dart';
 import 'perfil_profissional.dart';
-import 'package:plenonexo/screens/welcome/welcome_screen.dart';
+import 'package:AURA/screens/welcome/welcome_screen.dart';
 
 class OpcoesProfissional extends StatefulWidget {
   const OpcoesProfissional({Key? key}) : super(key: key);
@@ -356,25 +356,28 @@ class _OpcoesProfissionalState extends State<OpcoesProfissional> {
   }
 
   Widget _buildBottomNavigation() {
-    return Container(
-      height: 60,
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -1),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(0, Icons.home, "Home"),
-          _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
-          _buildNavItem(2, Icons.person, "Perfil"),
-        ],
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 60,
+        decoration: BoxDecoration(
+          color: AppTheme.background,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavItem(0, Icons.home, "Home"),
+            _buildNavItem(1, Icons.bar_chart, "Estatísticas"),
+            _buildNavItem(2, Icons.person, "Perfil"),
+          ],
+        ),
       ),
     );
   }

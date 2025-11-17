@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/services/auth_service.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/services/auth_service.dart';
 
 class UserService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

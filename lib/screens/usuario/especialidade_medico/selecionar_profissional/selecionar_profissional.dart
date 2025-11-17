@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:plenonexo/models/professional_model.dart';
-import 'package:plenonexo/models/user_model.dart';
-import 'package:plenonexo/services/professional_service.dart';
-import 'package:plenonexo/services/user_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
-import 'package:plenonexo/screens/usuario/especialidade_medico/selecionar_profissional/schedule/schedule_screen.dart';
+import 'package:AURA/models/professional_model.dart';
+import 'package:AURA/models/user_model.dart';
+import 'package:AURA/services/professional_service.dart';
+import 'package:AURA/services/user_service.dart';
+import 'package:AURA/utils/app_theme.dart';
+import 'package:AURA/screens/usuario/especialidade_medico/selecionar_profissional/schedule/schedule_screen.dart';
+import 'package:AURA/utils/time_utils.dart';
 
 class SelectProfessionalScreen extends StatefulWidget {
   final String specialty;
@@ -391,7 +392,7 @@ class _SelectProfessionalScreenState extends State<SelectProfessionalScreen> {
                         ),
                       ),
                       Text(
-                        '06/09/2025',
+                        BrazilTime.formatDate(DateTime.now()),
                         style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: AppTheme.pretoPrincipal.withOpacity(0.7),

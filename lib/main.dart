@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:plenonexo/firebase_options.dart';
-import 'package:plenonexo/utils/app_theme.dart';
-import 'package:plenonexo/utils/auth_check.dart';
-import 'package:plenonexo/services/notification_service.dart';
+import 'package:AURA/firebase_options.dart';
+import 'package:AURA/utils/app_theme.dart';
+import 'package:AURA/utils/auth_check.dart';
+import 'package:AURA/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationService.instance.init();
-  runApp(const PlenoNexoApp());
+  runApp(const AURAapp());
 }
 
-class PlenoNexoApp extends StatelessWidget {
-  const PlenoNexoApp({super.key});
+class AURAapp extends StatelessWidget {
+  const AURAapp({super.key});
 
   @override
   Widget build(BuildContext context) {

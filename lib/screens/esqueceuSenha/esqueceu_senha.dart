@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:plenonexo/screens/profissional/login/login_prof.dart';
-import 'package:plenonexo/screens/usuario/login/login_page.dart';
-import 'package:plenonexo/services/auth_service.dart';
-import 'package:plenonexo/utils/app_theme.dart';
+import 'package:AURA/screens/profissional/login/login_prof.dart';
+import 'package:AURA/screens/usuario/login/login_page.dart';
+import 'package:AURA/services/auth_service.dart';
+import 'package:AURA/utils/app_theme.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   final String userType;
