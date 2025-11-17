@@ -4,10 +4,12 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:plenonexo/firebase_options.dart';
 import 'package:plenonexo/utils/app_theme.dart';
 import 'package:plenonexo/utils/auth_check.dart';
+import 'package:plenonexo/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await NotificationService.instance.init();
   runApp(const PlenoNexoApp());
 }
 

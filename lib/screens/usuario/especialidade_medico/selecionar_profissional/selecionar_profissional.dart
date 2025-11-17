@@ -422,23 +422,6 @@ class _SelectProfessionalScreenState extends State<SelectProfessionalScreen> {
                         padding: const EdgeInsets.all(16.0),
                         child: Column(
                           children: [
-                            ListTile(
-                              leading: IconButton(
-                                icon: Icon(
-                                  Icons.arrow_back,
-                                  color: AppTheme.brancoPrincipal,
-                                ),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                              title: Text(
-                                'Selecionar Profissional',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppTheme.brancoPrincipal,
-                                ),
-                              ),
-                            ),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _searchController,

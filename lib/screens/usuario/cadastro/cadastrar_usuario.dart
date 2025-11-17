@@ -6,6 +6,7 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
 import 'package:flutter/services.dart';
 import 'package:plenonexo/services/user_service.dart';
+import 'package:plenonexo/screens/usuario/termos_servico.dart';
 
 class CadastrarUsuario extends StatefulWidget {
   const CadastrarUsuario({super.key});
@@ -437,7 +438,11 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                               }
                             },
                             activeColor: AppTheme.brancoPrincipal,
-                            checkColor: AppTheme.azul9,
+                            checkColor: AppTheme.azul5,
+                            side: BorderSide(
+                              color: AppTheme.brancoPrincipal,
+                              width: 2,
+                            ),
                           ),
                           Expanded(
                             child: Text(
@@ -448,6 +453,23 @@ class _CadastrarUsuarioState extends State<CadastrarUsuario> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const TermsOfServiceScreen(),
+                              ),
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.brancoPrincipal,
+                          ),
+                          child: const Text('Ver termos de serviço'),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton(

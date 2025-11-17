@@ -48,7 +48,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         _isLoading = false;
       });
       if (user != null) {
-        _appointmentsStream = _appointmentService.getPatientAppointmentsStream(user.uid);
+        _appointmentsStream = _appointmentService.getPatientAppointmentsStream(
+          user.uid,
+        );
       }
     }
   }
@@ -62,7 +64,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String formattedDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final String formattedDate = DateFormat(
+      'dd/MM/yyyy',
+    ).format(DateTime.now());
 
     return Scaffold(
       backgroundColor: AppTheme.brancoPrincipal,
@@ -92,25 +96,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   Widget _buildHeader(String formattedDate) {
     return Row(
       children: [
-        SvgPicture.asset(
-          'assets/img/NeuroConecta.svg',
-          height: 60,
-        ),
+        SvgPicture.asset('assets/img/NeuroConecta.svg', height: 60),
         const SizedBox(width: 12),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Olá, $_firstName',
-              style: AppTheme.tituloPrincipalPreto.copyWith(
-                fontSize: 18,
-              ),
+              style: AppTheme.tituloPrincipalPreto.copyWith(fontSize: 18),
             ),
             Text(
               formattedDate,
-              style: TextStyle(
-                color: AppTheme.pretoPrincipal,
-              ),
+              style: TextStyle(color: AppTheme.pretoPrincipal),
             ),
           ],
         ),
@@ -126,9 +123,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       children: [
         Text(
           'Acesso Rápido',
-          style: AppTheme.tituloPrincipalNegrito.copyWith(
-            fontSize: 16,
-          ),
+          style: AppTheme.tituloPrincipalNegrito.copyWith(fontSize: 16),
         ),
         const SizedBox(height: 8),
         Container(
@@ -154,8 +149,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const SelectSpecialtyScreen(),
+                        builder: (context) => const SelectSpecialtyScreen(),
                       ),
                     );
                   },
@@ -174,8 +168,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const ProfileEditScreen(),
+                        builder: (context) => const ProfileEditScreen(),
                       ),
                     );
                   },
@@ -192,13 +185,12 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     ),
                     height: 45,
                   ),
-                  label: 'Avaliar\nConsultas',
+                  label: 'Avaliar\nConsulta',
                   onPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            const ProfessionalRatingScreen(),
+                        builder: (context) => const ProfessionalRatingScreen(),
                       ),
                     );
                   },
@@ -246,7 +238,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return StreamBuilder<List<AppointmentModel>>(
       stream: _appointmentsStream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !_isLoading) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !_isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
@@ -273,7 +266,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             children: [
               Text(
                 'Minhas Consultas',
-                style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(fontSize: 16),
+                style: AppTheme.tituloPrincipalBrancoNegrito.copyWith(
+                  fontSize: 16,
+                ),
               ),
               const SizedBox(height: 16),
               Container(
@@ -306,7 +301,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   headerStyle: HeaderStyle(
                     titleCentered: true,
                     formatButtonVisible: false,
-                    titleTextStyle: AppTheme.tituloPrincipal.copyWith(fontSize: 16),
+                    titleTextStyle: AppTheme.tituloPrincipal.copyWith(
+                      fontSize: 16,
+                    ),
                   ),
                   calendarStyle: CalendarStyle(
                     selectedDecoration: BoxDecoration(
@@ -402,7 +399,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return Column(
       children: selectedAppointments.map((app) {
         final now = DateTime.now();
-        final canCancel = app.dateTime.isAfter(now.add(const Duration(hours: 24)));
+        final canCancel = app.dateTime.isAfter(
+          now.add(const Duration(hours: 24)),
+        );
         final status = _getStatusText(app);
 
         return Container(
@@ -525,7 +524,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   void _cancelAppointment(String appointmentId) async {
     try {
-      await _appointmentService.cancelAppointment(appointmentId, 'Cancelado pelo paciente');
+      await _appointmentService.cancelAppointment(
+        appointmentId,
+        'Cancelado pelo paciente',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Consulta cancelada com sucesso.'),
@@ -564,9 +566,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           case 2:
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (context) => const OptionsScreen(),
-              ),
+              MaterialPageRoute(builder: (context) => const OptionsScreen()),
             );
             break;
         }

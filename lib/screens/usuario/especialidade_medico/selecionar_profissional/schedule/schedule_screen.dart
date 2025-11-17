@@ -9,6 +9,7 @@ import 'package:plenonexo/screens/usuario/options/options_screen.dart';
 import 'package:plenonexo/services/appointment_service.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:plenonexo/services/user_service.dart';
+import 'package:plenonexo/services/notification_service.dart';
 
 class ScheduleScreen extends StatefulWidget {
   final ProfessionalModel professional;
@@ -287,6 +288,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         consultationPrice: widget.professional.consultationPrice,
         subject: 'Consulta com ${widget.professional.name}',
         patientName: _currentUser!.name,
+        professionalName: widget.professional.name,
+      );
+
+      // Notificações locais gratuitas: confirmação e lembretes
+      await NotificationService.instance.showImmediateConfirmation(
+        professionalName: widget.professional.name,
+        appointmentDateTime: appointmentDateTime,
+      );
+      await NotificationService.instance.scheduleAppointmentReminders(
+        appointmentDateTime: appointmentDateTime,
         professionalName: widget.professional.name,
       );
 

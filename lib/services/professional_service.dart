@@ -41,6 +41,7 @@ class ProfessionalService {
       'phone': phone,
       'officeAddress': officeAddress,
       'city': city,
+      'cityLower': city.trim().toLowerCase(),
       'atuationArea': atuationArea,
       'professionalId': professionalId,
       'accessibleLocation': accessibleLocation,
@@ -114,6 +115,7 @@ class ProfessionalService {
         'phone': phone,
         'officeAddress': officeAddress,
         'city': city,
+        'cityLower': city.trim().toLowerCase(),
         'atuationArea': atuationArea,
         'professionalId': professionalId,
         'accessibleLocation': accessibleLocation,
@@ -152,19 +154,35 @@ class ProfessionalService {
     String? city,
   }) async {
     try {
-      Query query = _firestore
+      final base = _firestore
           .collection('users')
-          .where('role', isEqualTo: 'professional')
-          .where('atuationArea', isEqualTo: specialty);
-      if (city != null && city.isNotEmpty)
-        query = query.where('city', isEqualTo: city);
-      final querySnapshot = await query.get();
+          .where('role', isEqualTo: 'professional');
 
-      if (querySnapshot.docs.isEmpty) {
+      // Primeira tentativa: campo 'atuationArea' igual à especialidade
+      Query query1 = base.where('atuationArea', isEqualTo: specialty);
+      if (city != null && city.isNotEmpty) {
+        query1 = query1.where('city', isEqualTo: city.trim());
+      }
+      final snap1 = await query1.get();
+
+      if (snap1.docs.isNotEmpty) {
+        return snap1.docs
+            .map((doc) => ProfessionalModel.fromFirestore(doc))
+            .toList();
+      }
+
+      // Segunda tentativa: array 'especialidades' contém a especialidade
+      Query query2 = base.where('especialidades', arrayContains: specialty);
+      if (city != null && city.isNotEmpty) {
+        query2 = query2.where('city', isEqualTo: city.trim());
+      }
+      final snap2 = await query2.get();
+
+      if (snap2.docs.isEmpty) {
         return [];
       }
 
-      return querySnapshot.docs
+      return snap2.docs
           .map((doc) => ProfessionalModel.fromFirestore(doc))
           .toList();
     } catch (e) {
