@@ -1,4 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -77,29 +78,23 @@ class NotificationService {
 
     // Lembrete 1 dia antes
     if (dayBefore.isAfter(DateTime.now())) {
-      await _plugin.zonedSchedule(
-        baseId + 1,
-        'Lembrete de consulta',
-        'Você tem consulta amanhã com $professionalName.',
-        tz.TZDateTime.from(dayBefore, tz.local),
-        details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+      await _safeZonedSchedule(
+        id: baseId + 1,
+        title: 'Lembrete de consulta',
+        body: 'Você tem consulta amanhã com $professionalName.',
+        when: tz.TZDateTime.from(dayBefore, tz.local),
+        details: details,
       );
     }
 
     // Lembrete 30 minutos antes
     if (thirtyMinutesBefore.isAfter(DateTime.now())) {
-      await _plugin.zonedSchedule(
-        baseId + 2,
-        'Lembrete de consulta',
-        'Sua consulta com $professionalName começa em 30 minutos.',
-        tz.TZDateTime.from(thirtyMinutesBefore, tz.local),
-        details,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
+      await _safeZonedSchedule(
+        id: baseId + 2,
+        title: 'Lembrete de consulta',
+        body: 'Sua consulta com $professionalName começa em 30 minutos.',
+        when: tz.TZDateTime.from(thirtyMinutesBefore, tz.local),
+        details: details,
       );
     }
   }
@@ -130,5 +125,43 @@ class NotificationService {
       'Sua consulta com $professionalName foi agendada para $formatted.',
       details,
     );
+  }
+
+  // Tenta agendar com modo EXATO; se não for permitido, usa INEXATO como fallback
+  Future<void> _safeZonedSchedule({
+    required int id,
+    required String title,
+    required String body,
+    required tz.TZDateTime when,
+    required NotificationDetails details,
+  }) async {
+    try {
+      await _plugin.zonedSchedule(
+        id,
+        title,
+        body,
+        when,
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } on PlatformException catch (e) {
+      if (e.code == 'exact_alarms_not_permitted') {
+        // Fallback para inexacto quando a permissão de alarmes exatos não está concedida
+        await _plugin.zonedSchedule(
+          id,
+          title,
+          body,
+          when,
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexact,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      } else {
+        rethrow;
+      }
+    }
   }
 }

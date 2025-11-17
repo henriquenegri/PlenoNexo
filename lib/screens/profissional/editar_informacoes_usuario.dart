@@ -4,6 +4,7 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/services/user_service.dart';
 import 'package:plenonexo/utils/app_theme.dart';
+import '../../widgets/save_button.dart';
 
 class EditarInformacoesUsuarioPage extends StatefulWidget {
   const EditarInformacoesUsuarioPage({super.key});
@@ -312,28 +313,9 @@ class _EditarInformacoesUsuarioPageState
                       },
                     ),
                     const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _saveChanges,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryGreen,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Text(
-                              'SALVAR ALTERAÇÕES',
-                              style: AppTheme.textoBotaoBranco,
-                            ),
+                    SaveButton(
+                      isLoading: _isLoading,
+                      onPressed: _saveChanges,
                     ),
                   ],
                 ),

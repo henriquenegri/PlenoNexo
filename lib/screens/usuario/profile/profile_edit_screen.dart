@@ -7,6 +7,7 @@ import 'package:plenonexo/models/user_model.dart';
 import 'package:plenonexo/screens/welcome/welcome_screen.dart';
 import 'package:plenonexo/services/auth_service.dart';
 import 'package:plenonexo/services/user_service.dart';
+import '../../../widgets/save_button.dart';
 
 class ProfileEditScreen extends StatefulWidget {
   const ProfileEditScreen({super.key});
@@ -673,34 +674,9 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _saveChanges,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF5E8D6B),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                child: _isLoading
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(
-                                        'SALVAR ALTERAÇÕES',
-                                        style: GoogleFonts.poppins(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
+                              child: SaveButton(
+                                isLoading: _isLoading,
+                                onPressed: _saveChanges,
                               ),
                             ),
                           ],
